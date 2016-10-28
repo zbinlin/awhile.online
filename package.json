@@ -1,0 +1,23 @@
+{
+  "name": "awhile.online",
+  "version": "1.0.0",
+  "description": "https://awhile.online",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zbinlin/awhile.online.git"
+  },
+  "keywords": [
+    "awhile",
+    "temporary"
+  ],
+  "author": "zbinlin",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/zbinlin/awhile.online/issues"
+  },
+  "homepage": "https://github.com/zbinlin/awhile.online#readme"
+}
