@@ -4,7 +4,7 @@
   "description": "https://awhile.online",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "BABEL_ENV=test jest"
   },
   "repository": {
     "type": "git",
@@ -19,5 +19,21 @@
   "bugs": {
     "url": "https://github.com/zbinlin/awhile.online/issues"
   },
-  "homepage": "https://github.com/zbinlin/awhile.online#readme"
+  "homepage": "https://github.com/zbinlin/awhile.online#readme",
+  "dependencies": {
+    "koa": "^1.2.4",
+    "koa-router": "^5.4.0",
+    "muyun": "^1.0.0",
+    "pg": "^6.1.0",
+    "promise-adapter": "^2.0.1",
+    "redis": "^2.6.2"
+  },
+  "devDependencies": {
+    "babel-core": "^6.18.0",
+    "babel-jest": "^16.0.0",
+    "babel-plugin-rewire": "^1.0.0",
+    "babel-preset-latest": "^6.16.0",
+    "fakeredis": "^1.0.3",
+    "jest": "^16.0.2"
+  }
 }

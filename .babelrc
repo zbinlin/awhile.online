@@ -1,0 +1,15 @@
+{
+	"env": {
+        "test": {
+            "plugins": ["rewire"]
+        }
+    },
+    "presets": [
+        [
+            "latest", {
+                "es2015": false
+            }
+        ]
+    ],
+    "plugins": ["transform-es2015-modules-commonjs"]
+}
