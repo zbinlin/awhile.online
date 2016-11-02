@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/zbinlin/awhile.online#readme",
   "dependencies": {
+    "jsonwebtoken": "^7.1.9",
     "koa": "^1.2.4",
     "koa-router": "^5.4.0",
     "muyun": "^1.0.0",
@@ -29,6 +30,7 @@
     "redis": "^2.6.2"
   },
   "devDependencies": {
+    "babel-cli": "^6.18.0",
     "babel-core": "^6.18.0",
     "babel-jest": "^16.0.0",
     "babel-plugin-rewire": "^1.0.0",
