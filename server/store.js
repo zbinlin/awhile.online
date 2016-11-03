@@ -11,21 +11,16 @@ import {
     redisClient,
 } from "./db";
 
-const PREFIX_KEY = "awhile.online";
-const REDIS_KEY_CONTENT = "content";
-const REDIS_KEY_PASSPHRASE = "passphrase";
-const REDIS_KEY_INTERVAL = "interval";
-const REDIS_KEY_OFFSET = "offset";
-const REDIS_KEY_ENABLED = "enabled";
+const MSG_PREFIX_KEY = "awhile.online:messages";
+const MSG_KEY_CONTENT = "content";
+const MSG_KEY_PASSPHRASE = "passphrase";
+const MSG_KEY_INTERVAL = "interval";
+const MSG_KEY_OFFSET = "offset";
+const MSG_KEY_ENABLED = "enabled";
 
-const stringType = {
-    serialize(val) {
-        return val;
-    },
-    deserialize(val) {
-        return val;
-    },
-};
+const USER_MSG_PREFIX_KEY = "awhile.online:user";
+const USER_MES_SUFFIX_KEY = "messages";
+
 const numberType = {
     serialize(val) {
         return String(val);
@@ -40,7 +35,7 @@ const booleanType = {
     },
     deserialize(val) {
         return Boolean(Number(val));
-    }
+    },
 };
 const bufferType = {
     serialize(val) {
@@ -51,11 +46,11 @@ const bufferType = {
     },
 };
 const types = {
-    [REDIS_KEY_CONTENT]: bufferType,
-    [REDIS_KEY_PASSPHRASE]: bufferType,
-    [REDIS_KEY_INTERVAL]: numberType,
-    [REDIS_KEY_OFFSET]: numberType,
-    [REDIS_KEY_ENABLED]: booleanType,
+    [MSG_KEY_CONTENT]: bufferType,
+    [MSG_KEY_PASSPHRASE]: bufferType,
+    [MSG_KEY_INTERVAL]: numberType,
+    [MSG_KEY_OFFSET]: numberType,
+    [MSG_KEY_ENABLED]: booleanType,
 };
 
 function serialize(name, value) {
@@ -69,7 +64,7 @@ function generateRedisKey(prefix, key, suffix) {
     return [prefix, key, suffix].join(":");
 }
 
-const generateStoreKey = generateRedisKey.bind(null, PREFIX_KEY);
+const generateStoreKey = generateRedisKey.bind(null, MSG_PREFIX_KEY);
 
 function generatePassphrase(size = 128) {
     return new Promise((resolve, reject) => {
@@ -94,11 +89,11 @@ function generateHash(content) {
 async function write(content, passphrase, interval, offset, enabled = false) {
     const key = (await generateHash(content)).slice(0, 11);
     const val = [
-        [REDIS_KEY_CONTENT, content],
-        [REDIS_KEY_PASSPHRASE, passphrase],
-        [REDIS_KEY_INTERVAL, interval],
-        [REDIS_KEY_OFFSET, offset],
-        [REDIS_KEY_ENABLED, enabled],
+        [MSG_KEY_CONTENT, content],
+        [MSG_KEY_PASSPHRASE, passphrase],
+        [MSG_KEY_INTERVAL, interval],
+        [MSG_KEY_OFFSET, offset],
+        [MSG_KEY_ENABLED, enabled],
     ].map(([k, v]) => [generateStoreKey(key, k), serialize(k, v)]);
     await redisClient.msetAsync([].concat(...val));
     return key;
@@ -127,34 +122,39 @@ export async function create(content, interval, start = new Date()) {
     return await write(crypted, passphrase, interval, offset, now >= start);
 }
 
-function remove(key) {
-    return redisClient.delAsync([
-        generateStoreKey(key, REDIS_KEY_CONTENT),
-        generateStoreKey(key, REDIS_KEY_PASSPHRASE),
-        generateStoreKey(key, REDIS_KEY_INTERVAL),
-        generateStoreKey(key, REDIS_KEY_OFFSET),
-        generateStoreKey(key, REDIS_KEY_ENABLED),
+/**
+ * @param {string} key
+ * @return {boolean}
+ */
+export async function remove(key) {
+    const result = await redisClient.delAsync([
+        generateStoreKey(key, MSG_KEY_CONTENT),
+        generateStoreKey(key, MSG_KEY_PASSPHRASE),
+        generateStoreKey(key, MSG_KEY_INTERVAL),
+        generateStoreKey(key, MSG_KEY_OFFSET),
+        generateStoreKey(key, MSG_KEY_ENABLED),
     ]);
+    return result === 5;
 }
 
 function checkExists(key) {
-    return redisClient.existsAsync(generateStoreKey(key, REDIS_KEY_CONTENT));
+    return redisClient.existsAsync(generateStoreKey(key, MSG_KEY_CONTENT));
 }
 
 function updateFlag(key, enabled) {
     return redisClient.setAsync(
-        generateStoreKey(key, REDIS_KEY_ENABLED),
-        serialize(REDIS_KEY_ENABLED, enabled),
+        generateStoreKey(key, MSG_KEY_ENABLED),
+        serialize(MSG_KEY_ENABLED, enabled),
     );
 }
 
 async function read(key) {
     const keys = [
-        REDIS_KEY_CONTENT,
-        REDIS_KEY_PASSPHRASE,
-        REDIS_KEY_INTERVAL,
-        REDIS_KEY_OFFSET,
-        REDIS_KEY_ENABLED,
+        MSG_KEY_CONTENT,
+        MSG_KEY_PASSPHRASE,
+        MSG_KEY_INTERVAL,
+        MSG_KEY_OFFSET,
+        MSG_KEY_ENABLED,
     ];
     const result = await redisClient.mgetAsync(
         keys.map(suffix => generateStoreKey(key, suffix)),
@@ -196,4 +196,46 @@ export async function get(key) {
         await updateFlag(key, !enabled);
     }
     return content;
+}
+
+
+function genKeyByUserId(userId) {
+    return [USER_MSG_PREFIX_KEY, userId, USER_MES_SUFFIX_KEY].join(":");
+}
+
+/**
+ * @param {number} userId
+ * @param {string} messageId
+ */
+export async function addMessageId(userId, messageId) {
+    const result = await redisClient.saddAsync(genKeyByUserId(userId), messageId);
+    return result === 1;
+}
+
+/**
+ * @param {number} userId
+ * @returns {string[]}
+ */
+export async function getAllMessagesByUserId(userId) {
+    return await redisClient.smembersAsync(genKeyByUserId(userId));
+}
+
+/**
+ * @param {number} userId
+ */
+export async function deleteUserId(userId) {
+    const result = await redisClient.delAsync(genKeyByUserId(userId));
+    return result === 1;
+}
+
+/**
+ * @param {number} userId
+ * @param {string} messageId
+ */
+export async function removeMessage(userId, messageId) {
+    const result = await redisClient.sremAsync(
+        genKeyByUserId(userId),
+        messageId,
+    );
+    return result === 1;
 }

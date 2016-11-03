@@ -154,7 +154,7 @@ export async function getUserInfoByToken(token) {
             return null;
         }
     } catch (ex) {
-        return null;
+        throw ex;
     } finally {
         conn.release();
     }
@@ -271,7 +271,7 @@ export async function changeNickname(userId, nickname) {
  * @param {string} username
  * @param {string} password
  * @param {number} expiration
- * @returns {string?}
+ * @returns {string}
  */
 export async function login(username, password, expiresIn) {
     username = username.toLowerCase();
@@ -283,17 +283,17 @@ export async function login(username, password, expiresIn) {
             [username],
         );
         if (result.rows.length === 0) {
-            return null;
+            throw new Error("username is not exists!");
         }
         ({ password: originPw, salt } = result.rows[0]);
     } catch (ex) {
-        return null;
+        throw ex;
     } finally {
         conn.release();
     }
     const pw = toStr(encryptPassword(password, salt));
     if (pw !== originPw) {
-        return null;
+        throw new Error("password incorrect!");
     }
     try {
         return signToken({
@@ -302,7 +302,7 @@ export async function login(username, password, expiresIn) {
             expiresIn,
         });
     } catch (ex) {
-        return null;
+        throw ex;
     }
 }
 
@@ -317,11 +317,7 @@ export async function logout(token) {
         return;
     }
     const expiresIn = decoded.exp - Math.floor(Date.now() / 1000);
-    try {
-        await redisClient.setAsync(
-            [REDIS_JWT_PREFIX_KEY, token].join(":"), "", "EX", expiresIn,
-        );
-    } catch (ex) {
-        return;
-    }
+    await redisClient.setAsync(
+        [REDIS_JWT_PREFIX_KEY, token].join(":"), "", "EX", expiresIn,
+    );
 }

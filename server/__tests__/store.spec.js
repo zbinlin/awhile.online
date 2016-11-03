@@ -9,15 +9,16 @@ import {
 import {
     create,
     get,
+    remove,
     __RewireAPI__ as $privates,
 } from "../store";
 
-const PREFIX_KEY = $privates.__GetDependency__("PREFIX_KEY");
-const REDIS_KEY_CONTENT = $privates.__GetDependency__("REDIS_KEY_CONTENT");
-const REDIS_KEY_PASSPHRASE = $privates.__GetDependency__("REDIS_KEY_PASSPHRASE");
-const REDIS_KEY_INTERVAL = $privates.__GetDependency__("REDIS_KEY_INTERVAL");
-const REDIS_KEY_OFFSET = $privates.__GetDependency__("REDIS_KEY_OFFSET");
-const REDIS_KEY_ENABLED = $privates.__GetDependency__("REDIS_KEY_ENABLED");
+const MSG_PREFIX_KEY = $privates.__GetDependency__("MSG_PREFIX_KEY");
+const MSG_KEY_CONTENT = $privates.__GetDependency__("MSG_KEY_CONTENT");
+const MSG_KEY_PASSPHRASE = $privates.__GetDependency__("MSG_KEY_PASSPHRASE");
+const MSG_KEY_INTERVAL = $privates.__GetDependency__("MSG_KEY_INTERVAL");
+const MSG_KEY_OFFSET = $privates.__GetDependency__("MSG_KEY_OFFSET");
+const MSG_KEY_ENABLED = $privates.__GetDependency__("MSG_KEY_ENABLED");
 
 describe("test @private functions", () => {
     describe("test #generatePassphrase function", () => {
@@ -60,45 +61,16 @@ describe("test @private functions", () => {
         });
     });
 
-    describe("test #remove function", () => {
-        const remove = $privates.__GetDependency__("remove");
-        const key = "foobar";
-        beforeEach(async () => {
-            await redisClient.msetAsync([
-                [PREFIX_KEY, key, REDIS_KEY_CONTENT].join(":"), "123",
-                [PREFIX_KEY, key, REDIS_KEY_PASSPHRASE].join(":"), "123",
-                [PREFIX_KEY, key, REDIS_KEY_INTERVAL].join(":"), 123,
-                [PREFIX_KEY, key, REDIS_KEY_OFFSET].join(":"), 0,
-                [PREFIX_KEY, key, REDIS_KEY_ENABLED].join(":"), Number(true),
-            ]);
-        });
-        afterEach(async () => {
-            await redisClient.flushdbAsync();
-        });
-        it("returns a Promise object and remove special key", async () => {
-            const result = remove(key);
-            expect(result).toBeInstanceOf(Promise);
-            expect(await result).toBe(5);
-            expect(await redisClient.mgetAsync([
-                [PREFIX_KEY, key, REDIS_KEY_CONTENT].join(":"),
-                [PREFIX_KEY, key, REDIS_KEY_PASSPHRASE].join(":"),
-                [PREFIX_KEY, key, REDIS_KEY_INTERVAL].join(":"),
-                [PREFIX_KEY, key, REDIS_KEY_OFFSET].join(":"),
-                [PREFIX_KEY, key, REDIS_KEY_ENABLED].join(":"),
-            ])).toEqual([null, null, null, null, null]);
-        });
-    });
-
     describe("test #checkExists function", () => {
         const checkExists = $privates.__GetDependency__("checkExists");
         const key = "foobar";
         beforeEach(async () => {
             await redisClient.msetAsync([
-                [PREFIX_KEY, key, REDIS_KEY_CONTENT].join(":"), "123",
-                [PREFIX_KEY, key, REDIS_KEY_PASSPHRASE].join(":"), "123",
-                [PREFIX_KEY, key, REDIS_KEY_INTERVAL].join(":"), 123,
-                [PREFIX_KEY, key, REDIS_KEY_OFFSET].join(":"), 0,
-                [PREFIX_KEY, key, REDIS_KEY_ENABLED].join(":"), Number(true),
+                [MSG_PREFIX_KEY, key, MSG_KEY_CONTENT].join(":"), "123",
+                [MSG_PREFIX_KEY, key, MSG_KEY_PASSPHRASE].join(":"), "123",
+                [MSG_PREFIX_KEY, key, MSG_KEY_INTERVAL].join(":"), 123,
+                [MSG_PREFIX_KEY, key, MSG_KEY_OFFSET].join(":"), 0,
+                [MSG_PREFIX_KEY, key, MSG_KEY_ENABLED].join(":"), Number(true),
             ]);
         });
         afterEach(async () => {
@@ -117,11 +89,11 @@ describe("test @private functions", () => {
         const key = "foobar";
         beforeEach(async () => {
             await redisClient.msetAsync([
-                [PREFIX_KEY, key, REDIS_KEY_CONTENT].join(":"), "123",
-                [PREFIX_KEY, key, REDIS_KEY_PASSPHRASE].join(":"), "123",
-                [PREFIX_KEY, key, REDIS_KEY_INTERVAL].join(":"), 123,
-                [PREFIX_KEY, key, REDIS_KEY_OFFSET].join(":"), 0,
-                [PREFIX_KEY, key, REDIS_KEY_ENABLED].join(":"), Number(true),
+                [MSG_PREFIX_KEY, key, MSG_KEY_CONTENT].join(":"), "123",
+                [MSG_PREFIX_KEY, key, MSG_KEY_PASSPHRASE].join(":"), "123",
+                [MSG_PREFIX_KEY, key, MSG_KEY_INTERVAL].join(":"), 123,
+                [MSG_PREFIX_KEY, key, MSG_KEY_OFFSET].join(":"), 0,
+                [MSG_PREFIX_KEY, key, MSG_KEY_ENABLED].join(":"), Number(true),
             ]);
         });
         afterEach(async () => {
@@ -130,7 +102,7 @@ describe("test @private functions", () => {
         it("returns OK", async () => {
             expect(await updateFlag(key, Number(false))).toBe("OK");
             expect(await redisClient.getAsync([
-                PREFIX_KEY, key, REDIS_KEY_ENABLED,
+                MSG_PREFIX_KEY, key, MSG_KEY_ENABLED,
             ].join(":"))).toBe(0);
         });
     });
@@ -140,11 +112,11 @@ describe("test @private functions", () => {
         const key = "foobar";
         beforeEach(async () => {
             await redisClient.msetAsync([
-                [PREFIX_KEY, key, REDIS_KEY_CONTENT].join(":"), Buffer.from("123").toString("hex"),
-                [PREFIX_KEY, key, REDIS_KEY_PASSPHRASE].join(":"), Buffer.from("123").toString("hex"),
-                [PREFIX_KEY, key, REDIS_KEY_INTERVAL].join(":"), 123,
-                [PREFIX_KEY, key, REDIS_KEY_OFFSET].join(":"), 0,
-                [PREFIX_KEY, key, REDIS_KEY_ENABLED].join(":"), Number(true),
+                [MSG_PREFIX_KEY, key, MSG_KEY_CONTENT].join(":"), Buffer.from("123").toString("hex"),
+                [MSG_PREFIX_KEY, key, MSG_KEY_PASSPHRASE].join(":"), Buffer.from("123").toString("hex"),
+                [MSG_PREFIX_KEY, key, MSG_KEY_INTERVAL].join(":"), 123,
+                [MSG_PREFIX_KEY, key, MSG_KEY_OFFSET].join(":"), 0,
+                [MSG_PREFIX_KEY, key, MSG_KEY_ENABLED].join(":"), Number(true),
             ]);
         });
         afterEach(async () => {
@@ -173,7 +145,6 @@ describe("test create function", () => {
 });
 
 describe("test get function", () => {
-    const remove = $privates.__GetDependency__("remove");
     it("returns content by key", async () => {
         const key = await create("123", 30);
         const result = await get(key);
@@ -208,5 +179,33 @@ describe("test get function", () => {
         const key = await create("123", 10, Math.floor((Date.now() + 10000) / 1000));
         expect(await get(key)).toBe(null);
         await remove(key);
+    });
+});
+
+describe("test remove function", () => {
+    const key = "foobar";
+    beforeEach(async () => {
+        await redisClient.msetAsync([
+            [MSG_PREFIX_KEY, key, MSG_KEY_CONTENT].join(":"), "123",
+            [MSG_PREFIX_KEY, key, MSG_KEY_PASSPHRASE].join(":"), "123",
+            [MSG_PREFIX_KEY, key, MSG_KEY_INTERVAL].join(":"), 123,
+            [MSG_PREFIX_KEY, key, MSG_KEY_OFFSET].join(":"), 0,
+            [MSG_PREFIX_KEY, key, MSG_KEY_ENABLED].join(":"), Number(true),
+        ]);
+    });
+    afterEach(async () => {
+        await redisClient.flushdbAsync();
+    });
+    it("returns a Promise object and remove special key", async () => {
+        const result = remove(key);
+        expect(result).toBeInstanceOf(Promise);
+        expect(await result).toBe(true);
+        expect(await redisClient.mgetAsync([
+            [MSG_PREFIX_KEY, key, MSG_KEY_CONTENT].join(":"),
+            [MSG_PREFIX_KEY, key, MSG_KEY_PASSPHRASE].join(":"),
+            [MSG_PREFIX_KEY, key, MSG_KEY_INTERVAL].join(":"),
+            [MSG_PREFIX_KEY, key, MSG_KEY_OFFSET].join(":"),
+            [MSG_PREFIX_KEY, key, MSG_KEY_ENABLED].join(":"),
+        ])).toEqual([null, null, null, null, null]);
     });
 });
