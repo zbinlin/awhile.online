@@ -1,13 +1,15 @@
 "use strict";
 
 import * as crypto from "crypto";
-import jwt from "jsonwebtoken";
+import {
+    signToken,
+    verifyToken,
+} from "./jwt";
 import {
     pgClient,
     redisClient,
-} from "../db";
+} from "./db";
 import {
-    JWT_SECRET,
     PG_TN_USERS,
 } from "../config";
 
@@ -52,30 +54,6 @@ function encryptPassword(password, salt) {
                 resolve(err);
             } else {
                 resolve(buf);
-            }
-        });
-    });
-}
-
-function signToken(payload, options) {
-    return new Promise((resolve, reject) => {
-        jwt.sign(payload, JWT_SECRET, options, (err, token) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(token);
-            }
-        });
-    });
-}
-
-function verifyToken(token, options) {
-    return new Promise((resolve, reject) => {
-        jwt.verify(token, JWT_SECRET, options, (err, decoded) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(decoded);
             }
         });
     });
@@ -128,20 +106,10 @@ export async function getUsernameByUserId(userId) {
 }
 
 /**
- * @param {string} token
+ * @param {string} username
  * @returns {Object?}
  */
-export async function getUserInfoByToken(token) {
-    let decoded;
-    try {
-        decoded = await verifyToken(token);
-    } catch (ex) {
-        return null;
-    }
-    const username = decoded.adu;
-    if (!username) {
-        return null;
-    }
+export async function getUserInfo(username) {
     const conn = await pgClient.connect();
     try {
         const result = await conn.query(
@@ -152,6 +120,29 @@ export async function getUserInfoByToken(token) {
             return Object.assign({}, result.rows[0]);
         } else {
             return null;
+        }
+    } catch (ex) {
+        throw ex;
+    } finally {
+        conn.release();
+    }
+}
+
+/**
+ * @param {string} username
+ * @returns {boolean}
+ */
+export async function checkUsernameExists(username) {
+    const conn = await pgClient.connect();
+    try {
+        const result = await conn.query(
+            `SELECT username FROM ${PG_TN_USERS} WHERE username = $1`,
+            [username.toLowerCase()],
+        );
+        if (result.rows.length > 0) {
+            return true;
+        } else {
+            return false;
         }
     } catch (ex) {
         throw ex;

@@ -21,13 +21,16 @@
   },
   "homepage": "https://github.com/zbinlin/awhile.online#readme",
   "dependencies": {
+    "co-body": "^4.2.0",
     "jsonwebtoken": "^7.1.9",
     "koa": "^1.2.4",
     "koa-router": "^5.4.0",
+    "moment": "^2.15.2",
     "muyun": "^1.0.0",
     "pg": "^6.1.0",
     "promise-adapter": "^2.0.1",
-    "redis": "^2.6.2"
+    "redis": "^2.6.2",
+    "validator": "^6.1.0"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",

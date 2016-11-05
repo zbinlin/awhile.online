@@ -1,6 +1,8 @@
 "use strict";
 
+import * as path from "path";
 import * as url from "url";
+import moment from "moment";
 
 const env = process.env;
 const isProduction = env.NODE_ENV === "production";
@@ -48,11 +50,33 @@ if (isProduction && !JWT_SECRET) {
     throw new Error("environment variable `JWT_SECRET` is not set");
 }
 
+const PORT = env.PORT || 8080;
+
+const HOST = env.HOST || "localhost";
+
 const PG_TN_USERS = "awhile_users"; // users table
+
+const GUEST_NAME = "anonymous";
+
+const ASSETS_PATH = path.join(process.cwd(), "dist/assets");
+
+const GUEST_TTL_RANGE = {
+    min: moment.duration(10, "minutes").asSeconds(),
+    max: moment.duration(5, "days").asSeconds(),
+};
+const MEMBER_TTL_RANGE = {
+    min: moment.duration(1, "minutes").asSeconds(),
+    max: moment.duration(1, "months").asSeconds(),
+};
 
 export {
     PG_CONFIG,
     REDIS_URL,
     JWT_SECRET,
     PG_TN_USERS,
+    PORT,
+    HOST,
+    GUEST_NAME,
+    GUEST_TTL_RANGE,
+    MEMBER_TTL_RANGE,
 };
