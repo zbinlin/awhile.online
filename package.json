@@ -4,7 +4,8 @@
   "description": "https://awhile.online",
   "main": "index.js",
   "scripts": {
-    "test": "BABEL_ENV=test jest"
+    "test": "BABEL_ENV=test jest",
+    "serve": "babel-node server/index.js"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,7 @@
     "jsonwebtoken": "^7.1.9",
     "koa": "^1.2.4",
     "koa-router": "^5.4.0",
+    "koa-static": "^2.0.0",
     "moment": "^2.15.2",
     "muyun": "^1.0.0",
     "pg": "^6.1.0",
@@ -39,6 +41,7 @@
     "babel-plugin-rewire": "^1.0.0",
     "babel-preset-latest": "^6.16.0",
     "fakeredis": "^1.0.3",
-    "jest": "^16.0.2"
+    "jest": "^16.0.2",
+    "supertest": "^2.0.1"
   }
 }

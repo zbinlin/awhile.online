@@ -66,7 +66,7 @@ function encryptPassword(password, salt) {
 export async function getUserIdByUsername(username) {
     const conn = await pgClient.connect();
     try {
-        const result = conn.query(
+        const result = await conn.query(
             `SELECT id FROM ${PG_TN_USERS} WHERE username = $1`,
             [username],
         );
@@ -89,7 +89,7 @@ export async function getUserIdByUsername(username) {
 export async function getUsernameByUserId(userId) {
     const conn = await pgClient.connect();
     try {
-        const result = conn.query(
+        const result = await conn.query(
             `SELECT username FROM ${PG_TN_USERS} WHERE id = $1`,
             [userId],
         );
@@ -163,7 +163,7 @@ export async function register(username, password, email = null) {
     const encryptedPw = await encryptPassword(password, salt);
     try {
         const result = await conn.query(
-            `INSERT INTO ${PG_TN_USERS}(username, nickname, email, password, salt) VALUES($1, $2, $3, $4)`,
+            `INSERT INTO ${PG_TN_USERS}(username, nickname, email, password, salt) VALUES($1, $2, $3, $4, $5)`,
             [username.toLowerCase(), username, email, toStr(encryptedPw), toStr(salt)],
         );
         return result.rowCount === 1;
@@ -282,13 +282,15 @@ export async function login(username, password, expiresIn) {
     } finally {
         conn.release();
     }
-    const pw = toStr(encryptPassword(password, salt));
+    const pw = toStr(await encryptPassword(password, salt));
     if (pw !== originPw) {
         throw new Error("password incorrect!");
     }
     try {
-        return signToken({
+        return await signToken({
             aud: username,
+            // NOTE: 保证在同一秒内的 token 不一样
+            rnd: Math.random(),
         }, {
             expiresIn,
         });
@@ -308,7 +310,18 @@ export async function logout(token) {
         return;
     }
     const expiresIn = decoded.exp - Math.floor(Date.now() / 1000);
-    await redisClient.setAsync(
+    const result = await redisClient.setAsync(
         [REDIS_JWT_PREFIX_KEY, token].join(":"), "", "EX", expiresIn,
+    );
+    return result === "OK";
+}
+
+
+/**
+ * @param {string} token
+ */
+export async function tokenInRevocationList(token) {
+    return await redisClient.existsAsync(
+        [REDIS_JWT_PREFIX_KEY, token].join(":"),
     );
 }

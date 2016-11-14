@@ -1,6 +1,6 @@
 "use strict";
 
-import jwt from "jsonwebtoken";
+import * as jwt from "jsonwebtoken";
 
 import {
 	JWT_SECRET,

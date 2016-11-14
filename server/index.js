@@ -23,15 +23,17 @@ import {
 
 const app = koa();
 
-function doThrow(ctx, error) {
+function doThrow(ctx, reason) {
     const { request: req, response: res } = ctx;
-    res.status = error.statusCode;
+    res.status = reason.statusCode || 500;
+    const body = Object.assign({}, reason, {
+        statusCode: reason.statusCode || 500,
+        message: reason.message,
+    });
     if (req.accepts("json")) {
-        res.body = {
-            message: error.message,
-        };
+        res.body = body;
     } else {
-        res.body = error.message;
+        res.body = JSON.stringify(body, null, " ".repeat(4));
     }
 }
 
@@ -47,6 +49,9 @@ function parseAuthorizatioHeader(ctx) {
         token: token.trim(),
     };
 }
+async function checkTokenInRevocationList(token) {
+    return await user.tokenInRevocationList(token);
+}
 function authorize(passThrough = false) {
     return function* (next) {
         const ctx = this;
@@ -55,7 +60,9 @@ function authorize(passThrough = false) {
             if (passThrough) {
                 return yield next;
             } else {
-                return ctx.throw(412);
+                return doThrow(ctx, {
+                    statusCode: 412,
+                });
             }
         }
         const { scheme, token } = auth;
@@ -63,16 +70,30 @@ function authorize(passThrough = false) {
             if (passThrough) {
                 return yield next;
             } else {
-                return ctx.throw(401);
+                return doThrow(ctx, {
+                    statusCode: 401,
+                });
+            }
+        }
+        if (yield checkTokenInRevocationList(token)) {
+            if (passThrough) {
+                return yield next;
+            } else {
+                return doThrow(ctx, {
+                    statusCode: 401,
+                    message: "用户已登出",
+                });
             }
         }
         try {
-            ctx.state = ctx.state || {};
             ctx.state.credentials = yield verifyToken(token);
             ctx.state.token = token;
         } catch (ex) {
             if (!passThrough) {
-                return ctx.throw(401);
+                return doThrow(ctx, {
+                    statusCode: 401,
+                    message: "登录已过期",
+                });
             }
         }
         return yield next;
@@ -83,13 +104,13 @@ function checkLength(str, min, max) {
     const validity = {
         valid: true,
     };
-    if (validator.isEmpty(str)) {
+    if (str == null || validator.isEmpty(str)) {
         validity.valid = false;
         validity.valueMissing = true;
-    } else if (validator.isLength(str, { min })) {
+    } else if (!validator.isLength(str, { min })) {
         validity.valid = false;
         validity.tooShort = true;
-    } else if (validator.isLength(str, { max })) {
+    } else if (!validator.isLength(str, { max })) {
         validity.valid = false;
         validity.tooLong = true;
     }
@@ -99,13 +120,13 @@ function checkEmail(email, max) {
     const validity = {
         valid: true,
     };
+    // NOTE: email is optional
+    if (email == null) {
+        return validity;
+    }
     if (!validator.isEmail(email)) {
         validity.valid = false;
         validity.typeMismatch = true;
-    }
-    if (!validator.isLength(email, { max })) {
-        validity.valid = false;
-        validity.tooLong = true;
     }
     return validity;
 }
@@ -192,24 +213,34 @@ apiRouter.post("/authentication", function* () {
         doThrow(this, ex);
     }
 });
-apiRouter.delete("/authentication", authorize(true), function* () {
+apiRouter.delete("/authentication", authorize(), function* () {
     const { response: res } = this;
     const token = this.state.token;
     if (!token) {
         doThrow(this, {
             statusCode: 400,
-            message: "用户已登出！",
+            message: "用户未登录！",
         });
+        return;
     }
     try {
-        user.logout(token);
+        const result = user.logout(token);
+        if (result) {
+            res.status = 200;
+        } else {
+            doThrow(this, {
+                statusCode: 400,
+                message: "登录已过期！",
+            });
+        }
     } catch (ex) {
+        // TODO logger ex
+        console.log(ex);
         doThrow(this, {
-            statusCode: 400,
-            message: "用户已登出！",
+            statusCode: 500,
         });
+        return;
     }
-    res.status = 200;
 });
 apiRouter.post("/users", function* () {
     const { response: res } = this;
@@ -225,7 +256,7 @@ apiRouter.post("/users", function* () {
     if (result !== true) {
         doThrow(this, {
             statusCode: 400,
-            message: result,
+            detail: result,
         });
         return;
     }
@@ -235,7 +266,7 @@ apiRouter.post("/users", function* () {
         if (exists) {
             doThrow(this, {
                 statusCode: 400,
-                message: {
+                detail: {
                     username: {
                         valid: false,
                         customError: true,
@@ -248,6 +279,7 @@ apiRouter.post("/users", function* () {
         yield user.register(username, password, email);
         res.status = 201;
     } catch (ex) {
+        console.log(ex);
         // TODO
         // logger ex
         doThrow(this, {
@@ -350,13 +382,16 @@ apiRouter.delete("/messages/:id", authorize(), function* () {
 app.use(apiRouter.routes()).use(apiRouter.allowedMethods());
 
 
-prepare().then(() => {
-    app.listen(PORT, HOST, function () {
-        console.log(this.address());
-        // started
+export default app;
+if (!module.parent) {
+    prepare().then(() => {
+        app.listen(PORT, HOST, function () {
+            console.log(this.address());
+            // started
+        });
+    }, async err => {
+        console.error(err);
+        await shutdown();
+        process.exit(1);
     });
-}, async err => {
-    console.error(err);
-    await shutdown();
-    process.exit(1);
-});
+}

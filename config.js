@@ -77,6 +77,7 @@ export {
     PORT,
     HOST,
     GUEST_NAME,
+    ASSETS_PATH,
     GUEST_TTL_RANGE,
     MEMBER_TTL_RANGE,
 };
