@@ -302,6 +302,12 @@ apiRouter.get("/users/:username", authorize(), function* () {
         return;
     }
     if (info) {
+        const messageIds = yield store.getAllMessageId(info.id);
+        const [valid, invalid] = yield store.checkInvalidMessageIds(messageIds);
+        if (invalid.length) {
+            yield store.removeMessageIds(info.id, ...invalid);
+        }
+        info.messageIds = valid;
         res.status = 200;
         res.body = info;
     } else {
@@ -350,7 +356,11 @@ apiRouter.post("/messages", authorize(true), function* () {
             : Math.max(MEMBER_TTL_RANGE.min, Math.min(parseInt(ttl, 10), MEMBER_TTL_RANGE.max));
     }
     try {
-        const id = store.create(content, expiresIn, startTime);
+        const id = yield store.create(content, expiresIn, startTime);
+        if (!isGuest) {
+            const userId = yield user.getUserIdByUsername(this.state.credentials.aud);
+            yield store.addMessageId(userId, id);
+        }
         res.status = 201;
         res.body = {
             id,
@@ -368,7 +378,7 @@ apiRouter.delete("/messages/:id", authorize(), function* () {
     const { id } = this.params;
     try {
         const userId = yield user.getUserIdByUsername(this.state.credentials.aud);
-        yield store.removeMessage(userId, id);
+        yield store.removeMessageId(userId, id);
         yield store.remove(id);
         res.status = 200;
     } catch (ex) {

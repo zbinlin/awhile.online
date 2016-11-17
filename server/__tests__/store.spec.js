@@ -10,6 +10,12 @@ import {
     create,
     get,
     remove,
+    addMessageIds,
+    getAllMessageId,
+    removeAllMessageId,
+    removeMessageId,
+    removeMessageIds,
+    checkInvalidMessageIds,
     __RewireAPI__ as $privates,
 } from "../store";
 
@@ -207,5 +213,122 @@ describe("test remove function", () => {
             [MSG_PREFIX_KEY, key, MSG_KEY_OFFSET].join(":"),
             [MSG_PREFIX_KEY, key, MSG_KEY_ENABLED].join(":"),
         ])).toEqual([null, null, null, null, null]);
+    });
+});
+
+describe("test addMessageIds function", () => {
+    const userId = 0;
+    const messageId = "hxhxhxhxhxhx";
+    afterEach(async () => {
+        await removeAllMessageId(userId);
+    });
+    it("should returns number of added message id", async () => {
+        const result = await addMessageIds(userId, messageId);
+        expect(result).toBe(1);
+    });
+    it("should returns 0 when the message id already exists", async () => {
+        await addMessageIds(userId, messageId);
+        const result = await addMessageIds(userId, messageId);
+        expect(result).toBe(0);
+    });
+});
+
+describe("test getAllMessageId function", () => {
+    const userId = 0;
+    const messageIds = ["hxhxhxhxhxhx", "xxxxxxxxxx"];
+    beforeEach(async () => {
+        await addMessageIds(userId, ...messageIds);
+    });
+    afterEach(async () => {
+        await removeAllMessageId(userId);
+    });
+    it("should returns all exists message id", async () => {
+        const result = await getAllMessageId(userId);
+        expect(result.length).toBe(messageIds.length);
+        expect(result).toEqual(messageIds);
+    });
+    it("should returns empty when the user id does not exists", async () => {
+        const result = await getAllMessageId(1);
+        expect(result.length).toBe(0);
+    });
+});
+
+describe("test removeAllMessageId function", () => {
+    const userId = 0;
+    const messageIds = ["hxhxhxhxhxhx", "xxxxxxxxxx"];
+    beforeEach(async () => {
+        await addMessageIds(userId, ...messageIds);
+    });
+    afterEach(async () => {
+        await removeAllMessageId(userId);
+    });
+    it("should remove all message id", async () => {
+        const result = await removeAllMessageId(userId);
+        expect(result).toBe(true);
+    });
+    it("should return false when the user id does not exists", async () => {
+        const result = await removeAllMessageId(1);
+        expect(result).toBe(false);
+    });
+});
+
+describe("test removeMessageId function", () => {
+    const userId = 0;
+    const messageIds = ["hxhxhxhxhxhx", "xxxxxxxxxx"];
+    beforeEach(async () => {
+        await addMessageIds(userId, ...messageIds);
+    });
+    afterEach(async () => {
+        await removeAllMessageId(userId);
+    });
+    it("should remove special message id", async () => {
+        const result = await removeMessageId(userId, "hxhxhxhxhxhx");
+        expect(result).toBe(1);
+        expect(await getAllMessageId(userId)).toEqual(["xxxxxxxxxx"]);
+    });
+    it("should return 0 when remove a message id or user id that do not exists", async () => {
+        const result = await removeMessageId(userId, "123");
+        expect(result).toBe(0);
+        const result1 = await removeMessageId(1, "hxhxhxhxhxhx");
+        expect(result1).toBe(0);
+    });
+});
+
+describe("test removeMessageIds function", () => {
+    const userId = 0;
+    const messageIds = ["hxhxhxhxhxhx", "xxxxxxxxxx"];
+    beforeEach(async () => {
+        await addMessageIds(userId, messageIds);
+    });
+    afterEach(async () => {
+        await removeAllMessageId(userId);
+    });
+    it("should remove multiple message id", async () => {
+        const result = await removeMessageIds(userId, "hxhxhxhxhxhx", "xxxxxxxxxx");
+        expect(result).toBe(2);
+    });
+});
+
+describe("test checkInvalidMessageIds function", () => {
+    const contents = ["hxhxhxhxhxhx", "xxxxxxxxxx", "yyy"];
+    const keys = [];
+    beforeEach(async () => {
+        for (const ct of contents) {
+            keys.push(await create(ct, 60));
+        }
+    });
+    afterEach(async () => {
+        for (const id of keys) {
+            await remove(id);
+        }
+    });
+    it("", async () => {
+        const [valid, invalid] = await checkInvalidMessageIds(
+            ["123", keys[0], keys[2]],
+        );
+        expect(valid.length).toBe(2);
+        expect(invalid.length).toBe(1);
+        expect(valid).toEqual([keys[0], keys[2]]);
+        expect(invalid).toEqual(["123"]);
     });
 });

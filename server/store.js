@@ -206,24 +206,28 @@ function genKeyByUserId(userId) {
 /**
  * @param {number} userId
  * @param {string} messageId
+ * @param {...string} messageIds
  */
-export async function addMessageId(userId, messageId) {
-    const result = await redisClient.saddAsync(genKeyByUserId(userId), messageId);
-    return result === 1;
+export async function addMessageIds(userId, messageId, ...messageIds) {
+    return await redisClient.saddAsync(
+        genKeyByUserId(userId),
+        messageId,
+        ...messageIds,
+    );
 }
 
 /**
  * @param {number} userId
  * @returns {string[]}
  */
-export async function getAllMessagesByUserId(userId) {
+export async function getAllMessageId(userId) {
     return await redisClient.smembersAsync(genKeyByUserId(userId));
 }
 
 /**
  * @param {number} userId
  */
-export async function deleteUserId(userId) {
+export async function removeAllMessageId(userId) {
     const result = await redisClient.delAsync(genKeyByUserId(userId));
     return result === 1;
 }
@@ -232,10 +236,37 @@ export async function deleteUserId(userId) {
  * @param {number} userId
  * @param {string} messageId
  */
-export async function removeMessage(userId, messageId) {
+export async function removeMessageId(userId, messageId) {
+    return await removeMessageIds(userId, messageId);
+}
+
+/**
+ * @param {number} userId
+ * @param {string} messageId
+ * @param {...string} messageIds
+ * @return {number} - number of removed message ids
+ */
+export async function removeMessageIds(userId, messageId, ...messageIds) {
     const result = await redisClient.sremAsync(
         genKeyByUserId(userId),
         messageId,
+        ...messageIds,
     );
-    return result === 1;
+    return result;
+}
+
+/**
+ * @param {string[]} messageIds
+ */
+export async function checkInvalidMessageIds(messageIds) {
+    const valid = [];
+    const invalid = [];
+    for (const id of messageIds) {
+        if (await checkExists(id)) {
+            valid.push(id);
+        } else {
+            invalid.push(id);
+        }
+    }
+    return [valid, invalid];
 }

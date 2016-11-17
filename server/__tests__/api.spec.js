@@ -379,6 +379,8 @@ describe("test logout api", () => {
 });
 
 describe("test get user information api", () => {
+    beforeAll(register.bind(null, "admin"));
+    afterAll(cancel.bind(null, "admin"));
     it("");
 });
 
