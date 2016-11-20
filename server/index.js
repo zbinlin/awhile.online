@@ -144,6 +144,16 @@ function validate(params) {
     }
 }
 
+function checkMessageContent(content) {
+    if (typeof content !== "string") {
+        return false;
+    }
+    if (content.length === 0 || content.length > 1024) {
+        return false;
+    }
+    return true;
+}
+
 // mount /assets/
 app.use(koaStatic(ASSETS_PATH));
 
@@ -279,7 +289,6 @@ apiRouter.post("/users", function* () {
         yield user.register(username, password, email);
         res.status = 201;
     } catch (ex) {
-        console.log(ex);
         // TODO
         // logger ex
         doThrow(this, {
@@ -307,9 +316,13 @@ apiRouter.get("/users/:username", authorize(), function* () {
         if (invalid.length) {
             yield store.removeMessageIds(info.id, ...invalid);
         }
-        info.messageIds = valid;
         res.status = 200;
-        res.body = info;
+        res.body = {
+            username,
+            nickname: info.nickname,
+            email: info.email,
+            messageIds: valid,
+        };
     } else {
         doThrow(this, {
             statusCode: 404,
@@ -342,6 +355,13 @@ apiRouter.post("/messages", authorize(true), function* () {
     const isGuest = !this.state.credentials;
     let startTime, expiresIn;
     const { content, ttl, startTime: _startTime } = params;
+    if (!checkMessageContent(content)) {
+        doThrow(this, {
+            statusCode: 400,
+            message: "内容不能为空，或超过 1024 个字符",
+        });
+        return;
+    }
     if (isGuest) {
         startTime = new Date();
         expiresIn = isNaN(ttl) ? GUEST_TTL_RANGE.min
@@ -359,7 +379,7 @@ apiRouter.post("/messages", authorize(true), function* () {
         const id = yield store.create(content, expiresIn, startTime);
         if (!isGuest) {
             const userId = yield user.getUserIdByUsername(this.state.credentials.aud);
-            yield store.addMessageId(userId, id);
+            yield store.addMessageIds(userId, id);
         }
         res.status = 201;
         res.body = {

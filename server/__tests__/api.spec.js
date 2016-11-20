@@ -5,6 +5,7 @@ jest.mock("redis");
 import app from "../index.js";
 import supertest from "supertest";
 import * as user from "../user.js";
+import * as store from "../store.js";
 import * as jwt from "jsonwebtoken";
 import moment from "moment";
 
@@ -342,7 +343,7 @@ describe("test logout api", () => {
                     });
             });
     });
-    it("should response 400 when the user logouted", done => {
+    it("should response 400 when the user logged out", done => {
         request.post("/api/authentication")
             .set("Content-Type", "application/json")
             .send({ username: "admin", password: "123456" })
@@ -379,15 +380,175 @@ describe("test logout api", () => {
 });
 
 describe("test get user information api", () => {
-    beforeAll(register.bind(null, "admin"));
+    let token;
+    beforeAll(async () => {
+        await user.register("admin", "123456", "admin@example.org");
+        token = await user.login("admin", "123456");
+    });
     afterAll(cancel.bind(null, "admin"));
-    it("");
+    it("should returns user information", done => {
+        request.get("/api/users/admin")
+            .set("Authorization", `Bearer ${token}`)
+            .expect(200)
+            .end((err, res) => {
+                if (err) {
+                    console.error(err);
+                    done.fail(err);
+                    return;
+                }
+                try {
+                    const {
+                        username,
+                        nickname,
+                        email,
+                        messageIds,
+                    } = res.body;
+                    expect(username).toBe("admin");
+                    expect(nickname).toBe("admin");
+                    expect(email).toBe("admin@example.org");
+                    expect(messageIds).toEqual([]);
+                    done();
+                } catch (ex) {
+                    done.fail(ex);
+                }
+            });
+    });
 });
 
 describe("test post message api", () => {
-    it("");
+    let token;
+    beforeEach(async () => {
+        await register("admin");
+        token = await user.login("admin", "123456");
+    });
+    afterEach(async () => {
+        try {
+            const userId = await user.getUserIdByUsername("admin");
+            await store.removeAllMessageId(userId);
+            await cancel("admin");
+        } catch (ex) {
+            // empty
+        }
+    });
+    it("should returns 201 that the user is Geust", done => {
+        request.post("/api/messages")
+            .send({
+                content: "xxx",
+                ttl: 30,
+            })
+            .expect(201)
+            .end((err, res) => {
+                if (err) {
+                    console.error(res.body, err);
+                    done.fail(err);
+                } else {
+                    done();
+                }
+            });
+    });
+    it("should returns 201 that post message success", done => {
+        request.post("/api/messages")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                content: "xxx",
+                ttl: 30,
+            })
+            .expect(201)
+            .end((err, res) => {
+                if (err) {
+                    console.error(res.body, err);
+                    done.fail(err);
+                } else {
+                    done();
+                }
+            });
+    });
+    it("should returns 400 that the content is empty", done => {
+        request.post("/api/messages")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                ttl: 30,
+            })
+            .expect(400)
+            .end((err, res) => {
+                if (err) {
+                    console.error(res.body, err);
+                } else {
+                    done();
+                }
+            });
+    });
 });
 
-describe("test get message api", () => {
-    it("");
+describe("test delete message api", () => {
+    let token, id;
+    beforeEach(async () => {
+        await register("admin");
+        token = await user.login("admin", "123456");
+        let resolve, reject;
+        request.post("/api/messages")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                content: "xxxx",
+            })
+            .expect(201)
+            .end((err, res) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    id = res.body.id;
+                    resolve();
+                }
+            });
+        return new Promise((...args) => {
+            [resolve, reject] = args;
+        });
+    });
+    afterEach(async () => {
+        try {
+            const userId = await user.getUserIdByUsername("admin");
+            await store.removeAllMessageId(userId);
+            await cancel("admin");
+        } catch (ex) {
+            // empty
+        }
+    });
+    it("should delete message by id", done => {
+        request.delete(`/api/messages/${id}`)
+            .set("Authorization", `Bearer ${token}`)
+            .expect(200)
+            .end((err, res) => {
+                if (err) {
+                    console.error(res.body, err);
+                    done.fail(err);
+                } else {
+                    done();
+                }
+            });
+    });
+    it("should returns 412 when user is not logged in", done => {
+        request.delete(`/api/messages/${id}`)
+            .expect(412)
+            .end((err, res) => {
+                if (err) {
+                    console.error(res.body, err);
+                    done.fail(err);
+                } else {
+                    done();
+                }
+            });
+    });
+    it("should returns 200 when message id is not exists", done => {
+        request.delete("/api/messages/123456")
+            .set("Authorization", `Bearer ${token}`)
+            .expect(200)
+            .end((err, res) => {
+                if (err) {
+                    console.error(res.body, err);
+                    done.fail(err);
+                } else {
+                    done();
+                }
+            });
+    });
 });
