@@ -37,6 +37,16 @@ function doThrow(ctx, reason) {
     }
 }
 
+function abortIfUsernameInvalid(ctx, username) {
+    if (!ctx.state.credentials || ctx.state.credentials.aud !== username) {
+        doThrow(ctx, {
+            statusCode: 400,
+            message: "用户名与用户 token 不一致！",
+        });
+        return true;
+    }
+}
+
 function parseAuthorizatioHeader(ctx) {
     const request = ctx.request;
     const authorization = request.headers["authorization"];
@@ -299,6 +309,13 @@ apiRouter.post("/users", function* () {
 apiRouter.get("/users/:username", authorize(), function* () {
     const { response: res } = this;
     const { username } = this.params;
+    if (username !== this.state.credentials.aud) {
+        doThrow(this, {
+            statusCode: 400,
+            message: "用户名与 token 不一致",
+        });
+        return;
+    }
     let info;
     try {
         info = yield user.getUserInfo(username);
@@ -311,17 +328,11 @@ apiRouter.get("/users/:username", authorize(), function* () {
         return;
     }
     if (info) {
-        const messageIds = yield store.getAllMessageId(info.id);
-        const [valid, invalid] = yield store.checkInvalidMessageIds(messageIds);
-        if (invalid.length) {
-            yield store.removeMessageIds(info.id, ...invalid);
-        }
         res.status = 200;
         res.body = {
             username,
             nickname: info.nickname,
             email: info.email,
-            messageIds: valid,
         };
     } else {
         doThrow(this, {
@@ -329,6 +340,34 @@ apiRouter.get("/users/:username", authorize(), function* () {
             message: "用户不存在！",
         });
     }
+});
+apiRouter.get("/users/:username/messages", authorize(), function* () {
+    const { response: res } = this;
+    const { username } = this.params;
+    if (abortIfUsernameInvalid(this, username)) {
+        return;
+    }
+    let id;
+    try {
+        id = yield user.getUserIdByUsername(username);
+    } catch (ex) {
+        if (ex.message.includes("is not exists")) {
+            doThrow(this, {
+                statusCode: 404,
+                message: "用户不存在或者已经被注销！",
+            });
+        } else {
+            // TODO logger
+        }
+        return;
+    }
+    const messageIds = yield store.getAllMessageId(id);
+    const [valid, invalid] = yield store.checkInvalidMessageIds(messageIds);
+    if (invalid.length) {
+        yield store.removeMessageIds(id, ...invalid);
+    }
+    res.status = 200;
+    res.body = valid;
 });
 apiRouter.put("/users/:username/password", authorize(), function* () {
     // TODO

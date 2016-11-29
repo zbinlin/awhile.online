@@ -401,12 +401,10 @@ describe("test get user information api", () => {
                         username,
                         nickname,
                         email,
-                        messageIds,
                     } = res.body;
                     expect(username).toBe("admin");
                     expect(nickname).toBe("admin");
                     expect(email).toBe("admin@example.org");
-                    expect(messageIds).toEqual([]);
                     done();
                 } catch (ex) {
                     done.fail(ex);
@@ -549,6 +547,90 @@ describe("test delete message api", () => {
                 } else {
                     done();
                 }
+            });
+    });
+});
+
+describe("test get user all message id api", () => {
+    let token, id;
+    beforeEach(async () => {
+        await register("admin");
+        token = await user.login("admin", "123456");
+        let resolve, reject;
+        request.post("/api/messages")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                content: "xxxx",
+            })
+            .expect(201)
+            .end((err, res) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    id = res.body.id;
+                    resolve();
+                }
+            });
+        return new Promise((...args) => {
+            [resolve, reject] = args;
+        });
+    });
+    afterEach(async () => {
+        try {
+            const userId = await user.getUserIdByUsername("admin");
+            await store.removeAllMessageId(userId);
+            await cancel("admin");
+        } catch (ex) {
+            // empty
+        }
+    });
+    it("should returns user message ids", done => {
+        request.get("/api/users/admin/messages")
+            .set("Authorization", `Bearer ${token}`)
+            .expect(200)
+            .end((err, res) => {
+                if (err) {
+                    console.error(res.body);
+                    done.fail(err);
+                } else {
+                    const messageIds = res.body;
+                    try {
+                        expect(messageIds.length).toBe(1);
+                        expect(messageIds[0]).toBe(id);
+                        done();
+                    } catch (ex) {
+                        done.fail(ex);
+                    }
+                }
+            });
+    });
+    it("should returns empty messageIds if not post message or deleted messages", done => {
+        request.delete(`/api/messages/${id}`)
+            .set("Authorization", `Bearer ${token}`)
+            .expect(200)
+            .end((err, res) => {
+                if (err) {
+                    console.error(res.body, err);
+                    done.fail(err);
+                    return;
+                }
+                request.get("/api/users/admin/messages")
+                    .set("Authorization", `Bearer ${token}`)
+                    .expect(200)
+                    .end((err, res) => {
+                        if (err) {
+                            console.error(res.body);
+                            done.fail(err);
+                        } else {
+                            const messageIds = res.body;
+                            try {
+                                expect(messageIds.length).toBe(0);
+                                done();
+                            } catch (ex) {
+                                done.fail(ex);
+                            }
+                        }
+                    });
             });
     });
 });
