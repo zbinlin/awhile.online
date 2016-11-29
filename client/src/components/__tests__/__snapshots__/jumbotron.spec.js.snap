@@ -1,0 +1,23 @@
+exports[`test Jumbotron renders correctly 1`] = `
+<div
+  className="jumbotron">
+  <div
+    className="mid">
+    <div
+      className="logo">
+      <span
+        className="name">
+        Awhile
+      </span>
+      <span
+        className="dot">
+        .
+      </span>
+      <span
+        className="domain">
+        Online
+      </span>
+    </div>
+  </div>
+</div>
+`;

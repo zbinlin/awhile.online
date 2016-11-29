@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+    <head>
+        <meta charset="UTF-8">
+        <title>awhile.online</title>
+        <meta name="viewport" content="width=device-wdith, initial-scale=1">
+        <link href="stylesheets/normalize.css" rel="stylesheet">
+        <link href="stylesheets/layout.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="jumbotron">
+            <div class="mid">
+                <div class="logo">
+                    <span class="name">Awhile</span><span class="dot">.</span><span class="domain">Online</span>
+                </div>
+            </div>
+        </div>
+        <div class="mid">
+            <div class="main">
+                <div class="nav">
+                    <a href="/">首页</a>
+                    <span>注册</span>
+                </div>
+                <div class="register-container">
+                    <form>
+                        <div class="form-ctl">
+                            <label class="for-text">用户名</label>
+                            <input type="text" name="username" required>
+                            <div class="invalid-message">用户名不能为空</div>
+                        </div>
+                        <div class="form-ctl">
+                            <label class="for-text">密码</label>
+                            <input type="password" name="password" required>
+                            <a class="check-pw-btn"></a>
+                            <div class="invalid-message"></div>
+                        </div>
+                        <div class="form-ctl">
+                            <label class="for-text">邮箱</label>
+                            <input type="email" name="email">
+                            <div class="invalid-message"></div>
+                        </div>
+                        <div class="form-ctl">
+                            <button type="submit" class="btn btn-primary btn-block">注册</button>
+                        </div>
+                    </form>
+                    <div class="register-success-dialog">
+                        <h2>注册成功！</h2>
+                        <a class="btn btn-primary" href="login.html">登录</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

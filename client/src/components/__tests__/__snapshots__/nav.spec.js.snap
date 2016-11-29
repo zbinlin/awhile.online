@@ -1,0 +1,12 @@
+exports[`test Nav renders correctly 1`] = `
+<div
+  className="nav">
+  <a
+    href="/">
+    首页
+  </a>
+  <span>
+    test
+  </span>
+</div>
+`;

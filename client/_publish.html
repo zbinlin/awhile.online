@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+    <head>
+        <meta charset="UTF-8">
+        <title>awhile.online</title>
+        <meta name="viewport" content="width=device-wdith, initial-scale=1">
+        <link href="stylesheets/normalize.css" rel="stylesheet">
+        <link href="stylesheets/layout.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="jumbotron">
+            <div class="mid">
+                <div class="logo">
+                    <span class="name">Awhile</span><span class="dot">.</span><span class="domain">Online</span>
+                </div>
+            </div>
+        </div>
+        <div class="mid">
+            <div class="main">
+                <div class="nav">
+                    <a href="/">首页</a>
+                    <span>发布消息</span>
+                </div>
+                <div class="post-message-container" style="display: none;">
+                    <div class="content">
+                        <textarea placeholder="在此输入您需要发布的消息……"></textarea>
+                        <span class="character-remaining">1024</span>
+                    </div>
+                    <div class="metadata-container">
+                        <div class="label">设置生效时间：</div>
+                        <div class="range" data-start-time="2016-11-26 12:00:00" data-end-time="2016-11-29 10:00:00">
+                            <a class="thumb"></a>
+                            <span class="track"></span>
+                            <a class="thumb"></a>
+                        </div>
+                        <div class="range-ipt">
+                            <input type="text" value="2016-11-26 12:40:20">-<input type="text" value="2016-11-27 10:20:00">
+                        </div>
+                    </div>
+                    <div class="tips">
+                    </div>
+                    <div class="btn-container">
+                        <a class="btn btn-primary">发布</a>
+                    </div>
+                </div>
+                <div class="posted-message-container">
+                    <h2>发布成功！</h2>
+                    <div class="message-link-text">
+                        <span>https://awhile.online/anonymous/aeaeaeaeaeae</span>
+                        <a class="copy-btn">复制</a>
+                    </div>
+                    <div class="qrcode">
+                        <img src="images/qrcode.png" alt="https://awhile.online">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
