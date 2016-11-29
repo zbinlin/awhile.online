@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "BABEL_ENV=test jest",
+    "webpack": "BABEL_ENV=webpack webpack",
     "serve": "babel-node server/index.js"
   },
   "repository": {
@@ -29,19 +30,32 @@
     "koa-static": "^2.0.0",
     "moment": "^2.15.2",
     "muyun": "^1.0.0",
+    "normalize.css": "^5.0.0",
     "pg": "^6.1.0",
+    "preact": "^6.4.0",
+    "preact-router": "^2.3.2",
     "promise-adapter": "^2.0.1",
     "redis": "^2.6.2",
+    "redux": "^3.6.0",
+    "redux-thunk": "^2.1.0",
     "validator": "^6.1.0"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
     "babel-core": "^6.18.0",
-    "babel-jest": "^16.0.0",
+    "babel-jest": "^17.0.2",
+    "babel-loader": "^6.2.8",
     "babel-plugin-rewire": "^1.0.0",
     "babel-preset-latest": "^6.16.0",
+    "babel-preset-react": "^6.16.0",
+    "enzyme": "^2.6.0",
     "fakeredis": "^1.0.3",
-    "jest": "^16.0.2",
-    "supertest": "^2.0.1"
+    "jest": "^17.0.3",
+    "react": "^15.4.1",
+    "react-addons-test-utils": "^15.4.1",
+    "react-dom": "^15.4.1",
+    "react-test-renderer": "^15.4.1",
+    "supertest": "^2.0.1",
+    "webpack": "^1.13.3"
   }
 }

@@ -1,7 +1,17 @@
 {
 	"env": {
         "test": {
-            "plugins": ["rewire"]
+            "plugins": [
+                "rewire",
+                "./tools/babel-plugin-preact-to-react.js",
+            ],
+            "presets": ["react"]
+        },
+        "webpack": {
+            "presets": ["react", "latest"],
+            "plugins": [
+                ["transform-react-jsx", { "pragma": "h" }]
+            ]
         }
     },
     "presets": [
