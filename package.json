@@ -6,7 +6,8 @@
   "scripts": {
     "test": "BABEL_ENV=test jest",
     "webpack": "BABEL_ENV=webpack webpack",
-    "serve": "babel-node server/index.js"
+    "serve": "babel-node server/index.js",
+    "lint": "eslint server/**/*.js && eslint client/src/**/*.js{x,}"
   },
   "repository": {
     "type": "git",
@@ -49,6 +50,8 @@
     "babel-preset-latest": "^6.16.0",
     "babel-preset-react": "^6.16.0",
     "enzyme": "^2.6.0",
+    "eslint": "^3.11.1",
+    "eslint-plugin-react": "^6.7.1",
     "fakeredis": "^1.0.3",
     "jest": "^17.0.3",
     "react": "^15.4.1",
