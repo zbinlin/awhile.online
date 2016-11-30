@@ -6,7 +6,7 @@ import {
     updateUserInfo,
     getUserInfo,
     postMessage,
-    getMesssageIds,
+    getMessageIds,
     removeMessage,
     register,
     login,
@@ -60,7 +60,6 @@ describe("test updateUserInfo api", () => {
     it("should save to session storage", () => {
         const userInfo = {
             username: "admin",
-            messageIds: [],
         };
         updateUserInfo(userInfo);
         expect(window.sessionStorage.getItem(
@@ -70,6 +69,8 @@ describe("test updateUserInfo api", () => {
 });
 
 describe("test getUserInfo api", () => {
+    const USER_INFO_KEY = __RewireAPI__.__GetDependency__("SESSION_KEY_USER_INFO");
+    const USER_TOKEN_KEY = __RewireAPI__.__GetDependency__("USER_TOKEN_KEY");
     beforeEach(() => {
         window.sessionStorage.clear();
         window.localStorage.clear();
@@ -85,14 +86,10 @@ describe("test getUserInfo api", () => {
         const data = {
             username: "admin",
         };
-        window.sessionStorage.setItem(
-            __RewireAPI__.__GetDependency__("SESSION_KEY_USER_INFO"),
-            JSON.stringify(data),
-        );
+        window.sessionStorage.setItem(USER_INFO_KEY, JSON.stringify(data));
         expect(await getUserInfo()).toEqual(data);
     });
     describe("fetch remote data", () => {
-        const KEY = __RewireAPI__.__GetDependency__("USER_TOKEN_KEY");
         const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhZG1pbiJ9.zXc0vYXrxf5ee4hPHoewiMIO317dE1eJB2FAvN2Fges";
         function createResponse(body = JSON.stringify({
             username: "admin",
@@ -108,7 +105,7 @@ describe("test getUserInfo api", () => {
         var result = {};
         beforeEach(() => {
             result.response = createResponse();
-            window.sessionStorage.setItem(KEY, token);
+            window.sessionStorage.setItem(USER_TOKEN_KEY, token);
             Object.defineProperty(window, "fetch", {
                 value: jest.fn(async (...args) => result.response),
                 writable: true,
@@ -120,8 +117,19 @@ describe("test getUserInfo api", () => {
             delete window.fetch;
             delete result.response;
         });
+        it("should ignore cached", async () => {
+            const data = {
+                username: "tom",
+            };
+            const expected = {
+                username: "admin",
+            };
+            window.sessionStorage.setItem(USER_INFO_KEY, JSON.stringify(data));
+            expect(await getUserInfo(true)).toEqual(expected);
+            expect(JSON.parse(window.sessionStorage.getItem(USER_INFO_KEY))).toEqual(expected);
+        });
         it("should returns null that the token is invalid", async () => {
-            window.sessionStorage.setItem(KEY, "123");
+            window.sessionStorage.setItem(USER_TOKEN_KEY, "123");
             expect(await getUserInfo()).toBe(null);
         });
         it("should returns null that the fetch api throws FetchError", async () => {
@@ -132,9 +140,7 @@ describe("test getUserInfo api", () => {
             expect(await getUserInfo()).toEqual({
                 username: "admin",
             });
-            expect(window.sessionStorage.getItem(__RewireAPI__.__GetDependency__(
-                "SESSION_KEY_USER_INFO"
-            ))).toBe(JSON.stringify({
+            expect(window.sessionStorage.getItem(USER_INFO_KEY)).toBe(JSON.stringify({
                 username: "admin",
             }));
         });
@@ -267,10 +273,9 @@ describe("test postMessage api", () => {
     });
 });
 
-describe("test getMesssageIds api", () => {
-    function createResponse(body = JSON.stringify([
-        "1234567890", "0123456789",
-    ]), init) {
+describe("test getMessageIds api", () => {
+    const defaultData = ["1234567890", "0123456789"];
+    function createResponse(body = JSON.stringify(defaultData), init) {
         const defaultOpt = {
             status: 200,
             headers: {
@@ -281,6 +286,7 @@ describe("test getMesssageIds api", () => {
     }
     var result = {};
     const KEY = __RewireAPI__.__GetDependency__("USER_TOKEN_KEY");
+    const MESSAGE_IDS_KEY = __RewireAPI__.__GetDependency__("SESSION_KEY_MESSAGE_IDS");
     const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhZG1pbiJ9.zXc0vYXrxf5ee4hPHoewiMIO317dE1eJB2FAvN2Fges";
     beforeEach(() => {
         result.response = createResponse();
@@ -296,10 +302,15 @@ describe("test getMesssageIds api", () => {
         delete window.fetch;
         delete result.response;
     });
+    it("should returns from cached", async () => {
+        const data = ["123"];
+        window.sessionStorage.setItem(MESSAGE_IDS_KEY, JSON.stringify(data));
+        expect(await getMessageIds()).toEqual(data);
+    });
     it("should throws AuthError that the user is not login", async () => {
         window.sessionStorage.clear();
         try {
-            await getMesssageIds();
+            await getMessageIds();
         } catch (ex) {
             expect(ex).toBeInstanceOf(customError.AuthError);
             return;
@@ -309,7 +320,7 @@ describe("test getMesssageIds api", () => {
     it("should throws AuthError that the token is invalid", async () => {
         window.sessionStorage.setItem(KEY, "ooo");
         try {
-            await getMesssageIds();
+            await getMessageIds();
         } catch (ex) {
             expect(ex).toBeInstanceOf(customError.AuthError);
             return;
@@ -319,7 +330,7 @@ describe("test getMesssageIds api", () => {
     it("should throws FetchError that fetch error", async () => {
         result.response = Promise.reject(new Error("error"));
         try {
-            await getMesssageIds();
+            await getMessageIds();
         } catch (ex) {
             expect(ex).toBeInstanceOf(customError.FetchError);
             expect(ex.message).toBe("error");
@@ -328,17 +339,25 @@ describe("test getMesssageIds api", () => {
         throw new Error("unexpect error");
     });
     it("should returns message ids", async () => {
-        const result = await getMesssageIds();
+        const result = await getMessageIds();
         expect(window.fetch.mock.calls.length).toBe(1);
         expect(window.fetch.mock.calls[0][1].headers["Authorization"]).toContain(token);
-        expect(result).toEqual(["1234567890", "0123456789"]);
+        expect(result).toEqual(defaultData);
+        expect(window.sessionStorage.getItem(MESSAGE_IDS_KEY))
+            .toBe(JSON.stringify(defaultData));
+    });
+    it("should ignore cached", async () => {
+        const data = ["123"];
+        window.sessionStorage.setItem(MESSAGE_IDS_KEY, JSON.stringify(data));
+        expect(await getMessageIds(true)).toEqual(defaultData);
+        expect(JSON.parse(window.sessionStorage.getItem(MESSAGE_IDS_KEY))).toEqual(defaultData);
     });
     it("should should AuthError that the token has been expired(statusCode = 401)", async () => {
         result.response = createResponse(null, {
             status: 401,
         });
         try {
-            await getMesssageIds();
+            await getMessageIds();
         } catch (ex) {
             expect(ex).toBeInstanceOf(customError.AuthError);
             return;
@@ -350,7 +369,7 @@ describe("test getMesssageIds api", () => {
             status: 500,
         });
         try {
-            await getMesssageIds();
+            await getMessageIds();
         } catch (ex) {
             expect(ex).toBeInstanceOf(customError.ServerError);
             return;

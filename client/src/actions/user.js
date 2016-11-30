@@ -12,12 +12,12 @@ import {
 
 import * as utils from "../utils";
 
-export function getUserInfo() {
+export function getUserInfo(ignoreCache) {
     return async dispatch => {
         await dispatch({
             type: GET_USER_INFO_REQUEST,
         });
-        const result = await utils.getUserInfo();
+        const result = await utils.getUserInfo(ignoreCache);
         return await dispatch({
             type: GET_USER_INFO_SUCCESS,
             payload: result,
@@ -39,20 +39,20 @@ export function postMessage(content, startTime, ttl) {
         } catch (ex) {
             return await dispatch({
                 type: POST_MESSAGE_FAILURE,
-                payload: ex,
+                payload: ex.errno,
                 error: true,
             });
         }
     };
 }
 
-export function getMesssageIds() {
+export function getMessageIds(ignoreCache) {
     return async dispatch => {
         await dispatch({
             type: GET_MESSAGE_IDS_REQUEST,
         });
         try {
-            const ids = await utils.getMesssageIds();
+            const ids = await utils.getMessageIds(ignoreCache);
             return await dispatch({
                 type: GET_MESSAGE_IDS_SUCCESS,
                 payload: ids,
@@ -60,7 +60,7 @@ export function getMesssageIds() {
         } catch (ex) {
             return await dispatch({
                 type: GET_MESSAGE_IDS_FAILURE,
-                payload: ex,
+                payload: ex.errno,
                 error: true,
             });
         }
@@ -80,7 +80,7 @@ export function removeMessage(id) {
         } catch (ex) {
             return await dispatch({
                 type: REMOVE_MESSAGE_FAILURE,
-                payload: ex,
+                payload: ex.errno,
                 error: true,
             });
         }
@@ -100,7 +100,10 @@ export function register(username, password, email) {
         } catch (ex) {
             return await dispatch({
                 type: REGISTER_USER_FAILURE,
-                payload: ex,
+                payload: {
+                    errno: ex.errno,
+                    detail: ex.detail,
+                },
                 error: true,
             });
         }
@@ -120,7 +123,7 @@ export function login(username, password, isRemember = false) {
         } catch (ex) {
             return await dispatch({
                 type: LOGIN_FAILURE,
-                payload: ex,
+                payload: ex.errno,
                 error: true,
             });
         }

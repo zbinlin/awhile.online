@@ -15,6 +15,7 @@ const MESSAGE_ENDPOINT = "/api/messages";
 const USER_INFO_ENDPOINT = "/api/users";
 const USER_AUTH_ENDPOINT = "/api/authentication";
 const SESSION_KEY_USER_INFO = "user-info";
+const SESSION_KEY_MESSAGE_IDS = "user-message-ids";
 const USER_TOKEN_KEY = "user-token";
 
 function getToken() {
@@ -111,15 +112,18 @@ export async function updateUserInfo(info) {
 }
 
 /**
+ * @param {boolean} [ignoreCache = false]
  * @return {Object?}
  */
-export async function getUserInfo() {
-    try {
-        if (sessionStorage.has(SESSION_KEY_USER_INFO)) {
-            return JSON.parse(sessionStorage.getItem(SESSION_KEY_USER_INFO));
+export async function getUserInfo(ignoreCache = false) {
+    if (!ignoreCache) {
+        try {
+            if (sessionStorage.has(SESSION_KEY_USER_INFO)) {
+                return JSON.parse(sessionStorage.getItem(SESSION_KEY_USER_INFO));
+            }
+        } catch (ex) {
+            // TODO logger
         }
-    } catch (ex) {
-        // TODO logger
     }
 
     const token = getToken();
@@ -205,6 +209,7 @@ export async function postMessage(content, startTime, ttl) {
 }
 
 /**
+ * @param {boolean} [ignoreCache = false]
  * @return {string[]} - ids
  * @throws {AuthError} - 用户未登录或已登出
  * @throws {FetchError} - fetch 出错，一般是超时或无网络连接等
@@ -212,7 +217,17 @@ export async function postMessage(content, startTime, ttl) {
  * @throws {ServerError} - 服务端内部错误
  * @throws {UnknowError} - 其他错误
  */
-export async function getMesssageIds() {
+export async function getMessageIds(ignoreCache = false) {
+    if (!ignoreCache) {
+        try {
+            if (sessionStorage.has(SESSION_KEY_MESSAGE_IDS)) {
+                return JSON.parse(sessionStorage.getItem(SESSION_KEY_MESSAGE_IDS));
+            }
+        } catch (ex) {
+            // TODO logger
+        }
+    }
+
     const token = getToken();
     if (!token) {
         throw new AuthError("用户已登出！");
@@ -237,11 +252,21 @@ export async function getMesssageIds() {
         throw new FetchError(ex.message);
     }
     if (response.ok) {
+        let result;
         try {
-            return await response.json();
+            result = await response.json();
         } catch (ex) {
             throw new FetchParseBodyError(ex.message);
         }
+        try {
+            sessionStorage.setItem(
+                SESSION_KEY_MESSAGE_IDS,
+                JSON.stringify(result),
+            );
+        } catch (ex) {
+            // empty
+        }
+        return result;
     }
     if (response.status >= 400 && response.status < 500) {
         clearToekn();
