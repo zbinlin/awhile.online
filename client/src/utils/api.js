@@ -170,7 +170,10 @@ export async function updateEmail(email) {
  */
 export async function postMessage(content, startTime, ttl) {
     const token = getToken();
-    const headers = {};
+    const headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    };
     if (token) {
         headers["Authorization"] = `Bearer ${token}`;
     }
@@ -190,7 +193,7 @@ export async function postMessage(content, startTime, ttl) {
     }
     if (response.ok) {
         try {
-            return await response.json().id;
+            return (await response.json()).id;
         } catch (ex) {
             throw new FetchParseBodyError(ex.message);
         }
@@ -360,6 +363,7 @@ export async function login(username, password, isRemember) {
         } catch (ex) {
             // TODO logger
         }
+        return token;
     } else {
         const { message } = await response.json();
         throw new LoginError(message);
