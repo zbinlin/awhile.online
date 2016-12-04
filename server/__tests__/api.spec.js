@@ -259,7 +259,7 @@ describe("test login api", () => {
                 });
         });
         it("should remember user login state", done => {
-            const expire = moment().add(1, "months").unix();
+            const expire = Math.floor(Date.now() / 1000) + moment.duration(1, "months").asSeconds();
             request.post("/api/authentication")
                 .set("Content-Type", "application/json")
                 .send({ username: "admin", "password": "123456", rememberMe: true })
@@ -471,6 +471,7 @@ describe("test post message api", () => {
             .end((err, res) => {
                 if (err) {
                     console.error(res.body, err);
+                    done.fail(err);
                 } else {
                     done();
                 }

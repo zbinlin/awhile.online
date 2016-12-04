@@ -6,11 +6,12 @@ import koa from "koa";
 import Router from "koa-router";
 import coParse from "co-body";
 import koaStatic from "koa-static";
-import validator from "validator";
 import { prepare, shutdown } from "./prepare";
 import * as store from "./store";
 import * as user from"./user";
 import { verifyToken } from "./jwt";
+import { validateRegister, validateMessage } from "../isomorphic/validate";
+import * as ERROR from "../isomorphic/error";
 import moment from "moment";
 import {
     HOST,
@@ -41,7 +42,7 @@ function abortIfUsernameInvalid(ctx, username) {
     if (!ctx.state.credentials || ctx.state.credentials.aud !== username) {
         doThrow(ctx, {
             statusCode: 400,
-            message: "用户名与用户 token 不一致！",
+            message: ERROR.USERNAME_AND_TOKEN_NOT_MATCH.message,
         });
         return true;
     }
@@ -91,7 +92,7 @@ function authorize(passThrough = false) {
             } else {
                 return doThrow(ctx, {
                     statusCode: 401,
-                    message: "用户已登出",
+                    message: ERROR.USER_LOGGED_OUT.message,
                 });
             }
         }
@@ -102,66 +103,12 @@ function authorize(passThrough = false) {
             if (!passThrough) {
                 return doThrow(ctx, {
                     statusCode: 401,
-                    message: "登录已过期",
+                    message: ERROR.USER_TOKEN_HAS_EXPIRED.message,
                 });
             }
         }
         return yield next;
     };
-}
-
-function checkLength(str, min, max) {
-    const validity = {
-        valid: true,
-    };
-    if (str == null || validator.isEmpty(str)) {
-        validity.valid = false;
-        validity.valueMissing = true;
-    } else if (!validator.isLength(str, { min })) {
-        validity.valid = false;
-        validity.tooShort = true;
-    } else if (!validator.isLength(str, { max })) {
-        validity.valid = false;
-        validity.tooLong = true;
-    }
-    return validity;
-}
-function checkEmail(email, max) {
-    const validity = {
-        valid: true,
-    };
-    // NOTE: email is optional
-    if (email == null) {
-        return validity;
-    }
-    if (!validator.isEmail(email)) {
-        validity.valid = false;
-        validity.typeMismatch = true;
-    }
-    return validity;
-}
-function validate(params) {
-    const validities = {};
-    validities.username = checkLength(params.username, 2, 32);
-    validities.password = checkLength(params.password, 6, 128);
-    validities.email = checkEmail(params.email, 128);
-    if (validities.username.valid &&
-        validities.password.valid &&
-        validities.email.valid) {
-        return true;
-    } else {
-        return validities;
-    }
-}
-
-function checkMessageContent(content) {
-    if (typeof content !== "string") {
-        return false;
-    }
-    if (content.length === 0 || content.length > 1024) {
-        return false;
-    }
-    return true;
 }
 
 // mount /assets/
@@ -229,7 +176,7 @@ apiRouter.post("/authentication", function* () {
         // TODO
         // logger ex
         ex.statusCode = 400;
-        ex.message = "用户名不存在或密码错误";
+        ex.message = ERROR.USERNAME_OR_PASSWORD_INCORRECT.message;
         doThrow(this, ex);
     }
 });
@@ -238,8 +185,8 @@ apiRouter.delete("/authentication", authorize(), function* () {
     const token = this.state.token;
     if (!token) {
         doThrow(this, {
-            statusCode: 400,
-            message: "用户未登录！",
+            statusCode: 401,
+            message: ERROR.USER_NOT_LOGGED_IN.message,
         });
         return;
     }
@@ -249,8 +196,8 @@ apiRouter.delete("/authentication", authorize(), function* () {
             res.status = 200;
         } else {
             doThrow(this, {
-                statusCode: 400,
-                message: "登录已过期！",
+                statusCode: 401,
+                message: ERROR.USER_LOGGED_OUT.message,
             });
         }
     } catch (ex) {
@@ -258,6 +205,7 @@ apiRouter.delete("/authentication", authorize(), function* () {
         console.log(ex);
         doThrow(this, {
             statusCode: 500,
+            message: ERROR.SERVER_ERROR.message,
         });
         return;
     }
@@ -272,7 +220,7 @@ apiRouter.post("/users", function* () {
         doThrow(this, ex);
         return;
     }
-    const result = validate(params);
+    const result = validateRegister(params);
     if (result !== true) {
         doThrow(this, {
             statusCode: 400,
@@ -303,6 +251,7 @@ apiRouter.post("/users", function* () {
         // logger ex
         doThrow(this, {
             statusCode: 500,
+            message: ERROR.SERVER_ERROR.message,
         });
     }
 });
@@ -312,7 +261,7 @@ apiRouter.get("/users/:username", authorize(), function* () {
     if (username !== this.state.credentials.aud) {
         doThrow(this, {
             statusCode: 400,
-            message: "用户名与 token 不一致",
+            message: ERROR.USERNAME_AND_TOKEN_NOT_MATCH.message,
         });
         return;
     }
@@ -324,6 +273,7 @@ apiRouter.get("/users/:username", authorize(), function* () {
         // logger ex
         doThrow(this, {
             statusCode: 500,
+            message: ERROR.SERVER_ERROR.message,
         });
         return;
     }
@@ -337,7 +287,7 @@ apiRouter.get("/users/:username", authorize(), function* () {
     } else {
         doThrow(this, {
             statusCode: 404,
-            message: "用户不存在！",
+            message: ERROR.USER_IS_NOT_EXISTS.message,
         });
     }
 });
@@ -354,10 +304,14 @@ apiRouter.get("/users/:username/messages", authorize(), function* () {
         if (ex.message.includes("is not exists")) {
             doThrow(this, {
                 statusCode: 404,
-                message: "用户不存在或者已经被注销！",
+                message: ERROR.USER_IS_NOT_EXISTS.message,
             });
         } else {
             // TODO logger
+            doThrow(this, {
+                statusCode: 500,
+                message: ERROR.SERVER_ERROR.message,
+            });
         }
         return;
     }
@@ -391,16 +345,20 @@ apiRouter.post("/messages", authorize(true), function* () {
         doThrow(this, ex);
         return;
     }
-    const isGuest = !this.state.credentials;
-    let startTime, expiresIn;
-    const { content, ttl, startTime: _startTime } = params;
-    if (!checkMessageContent(content)) {
+
+    const result = validateMessage(params);
+    if (result !== true) {
         doThrow(this, {
             statusCode: 400,
-            message: "内容不能为空，或超过 1024 个字符",
+            detail: result,
         });
         return;
     }
+
+    const { content, ttl, startTime: _startTime } = params;
+    const isGuest = !this.state.credentials;
+    let startTime, expiresIn;
+
     if (isGuest) {
         startTime = new Date();
         expiresIn = isNaN(ttl) ? GUEST_TTL_RANGE.min
@@ -429,6 +387,7 @@ apiRouter.post("/messages", authorize(true), function* () {
         // logger ex
         doThrow(this, {
             statusCode: 500,
+            message: ERROR.SERVER_ERROR.message,
         });
     }
 });
@@ -445,6 +404,7 @@ apiRouter.delete("/messages/:id", authorize(), function* () {
         // logger ex
         doThrow(this, {
             statusCode: 500,
+            message: ERROR.SERVER_ERROR.message,
         });
     }
 });
