@@ -1,11 +1,9 @@
 "use strict";
 
-import { h, Component } from "preact";
+import React, { Component } from "react";
 import moment from "moment";
 
 const FORMATTER = "YYYY-MM-DD HH:mm:ss";
-
-const isTouch = "";
 
 class Track extends Component {
     constructor(...args) {
@@ -29,7 +27,6 @@ class Track extends Component {
             this.movingParts = "whole";
             document.body.style.cursor = "grabbing";
         }
-        console.log(this.movingParts);
         document.addEventListener("mousemove", this.handleMouseMove, false);
         document.addEventListener("mouseup", this.handleMouseUp, false);
     }
@@ -128,7 +125,7 @@ export default class TimeRange extends Component {
         return moment.unix(t).format(FORMATTER);
     }
     parseStringTime(str) {
-        const m = moment(str, FORMATTER, true);
+        const m = moment(str, FORMATTER, false);
         if (m.isValid()) {
             return m.unix();
         } else {
@@ -138,9 +135,13 @@ export default class TimeRange extends Component {
     handleStartTimeChange(evt) {
         const target = evt.target;
         const value = target.value;
+        const { start, end, value: range } = this.props;
         try {
-            const startTime = this.parseStringTime(value);
-            this.props.onChange(Object.assign({}, this.props.range, {
+            const startTime = Math.min(
+                Math.max(start, this.parseStringTime(value)),
+                range.endTime - (end - start) * 0.01,
+            );
+            this.props.onChange(Object.assign({}, range, {
                 startTime,
             }));
         } catch (ex) {
@@ -150,9 +151,13 @@ export default class TimeRange extends Component {
     handleEndTimeChange(evt) {
         const target = evt.target;
         const value = target.value;
+        const { start, end, value: range } = this.props;
         try {
-            const endTime = this.parseStringTime(value);
-            this.props.onChange(Object.assign({}, this.props.range, {
+            const endTime = Math.max(
+                range.startTime + (end - start) * 0.01,
+                Math.min(this.parseStringTime(value), end),
+            );
+            this.props.onChange(Object.assign({}, range, {
                 endTime,
             }));
         } catch (ex) {
