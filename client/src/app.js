@@ -15,6 +15,7 @@ import {
 class App extends Component {
     constructor(...args) {
         super(...args);
+        const { store } = this.props;
         this.state = Object.assign({}, store.getState(), {
             $dispatch$(...args) {
                 return store.dispatch(...args);
@@ -25,6 +26,7 @@ class App extends Component {
         });
     }
     render() {
+        const { messageContent } = this.props;
         const { $dispatch$: dispatch, ...store } = this.state;
         return (
             <Router>
@@ -33,8 +35,8 @@ class App extends Component {
                 <Publish path="/publish.html" dispatch={dispatch} userInfo={store.userInfo} message={store.message} />
                 <Login path="/login.html" dispatch={dispatch} userInfo={store.userInfo} auth={store.auth} />
                 <Register path="/register.html" dispatch={dispatch} userInfo={store.userInfo} register={store.register} />
-                <Message path="/m/:id" dispatch={dispatch} {...store} userInfo={store.userInfo} />
-                <Message path="/anonymous/:id" dispatch={dispatch} {...store} userInfo={store.userInfo} />
+                <Message path="/m/:id" content={messageContent} dispatch={dispatch} {...store} userInfo={store.userInfo} />
+                <Message path="/anonymous/:id" content={messageContent} dispatch={dispatch} {...store} userInfo={store.userInfo} />
             </Router>
         );
     }
@@ -42,4 +44,4 @@ class App extends Component {
 
 document.body.innerHTML = "";
 
-render(<App store={store} />, document.body);
+render(<App store={store} messageContent={window.messageContent} />, document.body);

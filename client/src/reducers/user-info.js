@@ -19,7 +19,7 @@ function messageIds(state = {}, action) {
             return Object.assign({}, state, {
                 loading: true,
                 ids: null,
-                errno: 0,
+                error: null,
             });
         case GET_MESSAGE_IDS_SUCCESS:
             return Object.assign({}, state, {
@@ -29,7 +29,7 @@ function messageIds(state = {}, action) {
         case GET_MESSAGE_IDS_FAILURE:
             return Object.assign({}, state, {
                 loading: false,
-                errno: action.payload,
+                error: action.payload,
             });
 
         default:
@@ -44,7 +44,7 @@ export default function userInfo(state = {}, action) {
             return state;
         case GET_USER_INFO_SUCCESS:
             return Object.assign({}, state, {
-                userInfo: action.payload,
+                baseInfo: action.payload,
             });
 
         case GET_MESSAGE_IDS_REQUEST:

@@ -4,7 +4,6 @@ import { h, Component } from "preact";
 
 import * as actions from "../actions";
 import { User, Jumbotron, Nav } from "../components";
-import * as consts from "../constants";
 
 const LoginForm = ({ errorMessage, processing, onSubmit }) => {
     let tips, submitCls = "";
@@ -70,6 +69,7 @@ export default class Login extends Component {
             this.setState({
                 processing: true,
                 errorMessage: "",
+                loggedIn: false,
             });
         } else if (auth.success) {
             this.setState({
@@ -78,14 +78,11 @@ export default class Login extends Component {
                 loggedIn: true,
             });
         } else if (auth.errno) {
-            switch (auth.errno) {
-                case consts.:
-                    break;
-                case consts.:
-                    break;
-                default:
-                    break;
-            }
+            this.setState({
+                processing: false,
+                errorMessage: auth.errno.message,
+                loggedIn: false,
+            });
         }
     }
     componentWillReceiveProps(nextProps) {

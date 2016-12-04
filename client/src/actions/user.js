@@ -31,15 +31,19 @@ export function postMessage(content, startTime, ttl) {
             type: POST_MESSAGE_REQUEST,
         });
         try {
-            const id = await utils.postMessage(content, startTime, ttl);
+            const link = await utils.postMessage(content, startTime, ttl);
             return await dispatch({
                 type: POST_MESSAGE_SUCCESS,
-                payload: id,
+                payload: link,
             });
         } catch (ex) {
             return await dispatch({
                 type: POST_MESSAGE_FAILURE,
-                payload: ex.errno,
+                payload: {
+                    errno: ex.errno,
+                    message: ex.message,
+                    detail: ex.detail,
+                },
                 error: true,
             });
         }
@@ -60,7 +64,10 @@ export function getMessageIds(ignoreCache) {
         } catch (ex) {
             return await dispatch({
                 type: GET_MESSAGE_IDS_FAILURE,
-                payload: ex.errno,
+                payload: {
+                    errno: ex.errno,
+                    message: ex.message,
+                },
                 error: true,
             });
         }
@@ -80,7 +87,10 @@ export function removeMessage(id) {
         } catch (ex) {
             return await dispatch({
                 type: REMOVE_MESSAGE_FAILURE,
-                payload: ex.errno,
+                payload: {
+                    errno: ex.errno,
+                    message: ex.message,
+                },
                 error: true,
             });
         }
@@ -101,7 +111,8 @@ export function register(username, password, email) {
             return await dispatch({
                 type: REGISTER_USER_FAILURE,
                 payload: {
-                    errno: ex.errno,
+                    errno: ex.message,
+                    message: ex.message,
                     detail: ex.detail,
                 },
                 error: true,
@@ -123,7 +134,10 @@ export function login(username, password, isRemember = false) {
         } catch (ex) {
             return await dispatch({
                 type: LOGIN_FAILURE,
-                payload: ex.errno,
+                payload: {
+                    errno: ex.message,
+                    message: ex.message,
+                },
                 error: true,
             });
         }

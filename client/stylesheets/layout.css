@@ -417,19 +417,32 @@ a:hover {
 }
 .post-message-container .metadata-container .range .track {
     position: absolute;
-    left: 20%;
+    left: 0;
     top: 0;
-    width: 50%;
+    width: 0;
     bottom: 0;
     background: #5f8dd3;
+    cursor: grab;
 }
-.post-message-container .metadata-container .range .thumb {
+.post-message-container .metadata-container .range .track::before,
+.post-message-container .metadata-container .range .track::after {
+    content: "";
     position: absolute;
     width: 3px;
     height: 16px;
     top: -6px;
     background: gray;
     cursor: ew-resize;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    background-clip: content-box;
+    background-origin: content-box;
+}
+.post-message-container .metadata-container .range .track::before {
+    left: -6px;
+}
+.post-message-container .metadata-container .range .track::after {
+    right: -6px;
 }
 .post-message-container .metadata-container .range-ipt {
     text-align: center;

@@ -11,18 +11,18 @@ export default function message(state = {}, action) {
         case POST_MESSAGE_REQUEST:
             return Object.assign({}, state, {
                 posting: true,
-                id: null,
-                errno: 0,
+                link: null,
+                errno: null,
             });
         case POST_MESSAGE_SUCCESS:
             return Object.assign({}, state, {
                 posting: false,
-                id: action.payload,
+                link: action.payload,
             });
         case POST_MESSAGE_FAILURE:
             return Object.assign({}, state, {
                 posting: false,
-                errno: action.payload,
+                error: action.payload,
             });
 
         default:

@@ -16,13 +16,13 @@ export default function auth(state = {}, action) {
             return Object.assign({
                 success: true,
                 processing: false,
-                errno: 0,
+                error: null,
             });
         case LOGIN_FAILURE:
             return Object.assign({
                 success: false,
                 processing: false,
-                errno: action.payload,
+                error: action.payload,
             });
 
         default:

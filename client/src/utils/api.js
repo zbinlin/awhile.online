@@ -172,7 +172,7 @@ export async function updateEmail(email) {
  * @param {string} content
  * @param {number} startTime
  * @param {number} ttl
- * @return {string} - id
+ * @return {string} - link
  * @throws {FetchError} - fetch 出错，一般是超时或无网络连接等
  * @throws {FetchParseBodyError} - parse response.body 时出错
  * @throws {ServerError} - 服务端内部错误
@@ -203,7 +203,8 @@ export async function postMessage(content, startTime, ttl) {
     }
     if (response.ok) {
         try {
-            return (await response.json()).id;
+            const { id } = await response.json();
+            return `https://awhile.online/${token ? "m" : "anonymous"}/${id}`;
         } catch (ex) {
             throw new FetchParseBodyError(ex.message);
         }

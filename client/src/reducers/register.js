@@ -12,7 +12,7 @@ export default function register(state = {}, action) {
             return Object.assign({}, state, {
                 processing: true,
                 success: false,
-                reason: null,
+                error: null,
             });
         case REGISTER_USER_SUCCESS:
             return Object.assign({}, state, {
@@ -22,7 +22,7 @@ export default function register(state = {}, action) {
         case REGISTER_USER_FAILURE:
             return Object.assign({}, state, {
                 processing: false,
-                reason: action.payload,
+                error: action.payload,
             });
 
         default:

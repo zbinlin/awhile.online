@@ -196,7 +196,7 @@ describe("test postMessage api", () => {
                 startTime,
                 ttl,
             }));
-            expect(result).toBe("1234567890");
+            expect(result).toContain("/anonymous/1234567890");
         });
         it("should throws FetchError that fetch error", async () => {
             const content = "test message";
@@ -244,7 +244,7 @@ describe("test postMessage api", () => {
                 startTime,
                 ttl,
             }));
-            expect(result).toBe("1234567890");
+            expect(result).toContain("/m/1234567890");
         });
         it("should throws FetchError that fetch error", async () => {
             const content = "test message";
