@@ -8,6 +8,7 @@ import {
     AuthError,
     UnknowError,
     LoginError,
+    PostMessageError,
     RegisterError,
 } from "./custom-error";
 
@@ -34,6 +35,11 @@ function clearToekn() {
         localStorage.removeItem(USER_TOKEN_KEY);
     }
 }
+function clearUserInfo() {
+    sessionStorage.removeItem(SESSION_KEY_USER_INFO);
+    sessionStorage.removeItem(SESSION_KEY_MESSAGE_IDS);
+}
+
 function saveToken(token, isRemember) {
     if (isRemember) {
         localStorage.setItem(USER_TOKEN_KEY, token);
@@ -99,7 +105,7 @@ async function getUserInfoByToken(token) {
     if (response.ok) {
         return body;
     } else if (response.status === 401) {
-        throw new AuthError("用户已登出！");
+        throw new AuthError(getMessageFromBody(body));
     } else if (response.status >= 400 && response.status < 500) {
         throw new ClientError(getMessageFromBody(body));
     } else if (response.status >= 500) {
@@ -202,10 +208,21 @@ export async function postMessage(content, startTime, ttl) {
             throw new FetchParseBodyError(ex.message);
         }
     }
-    if (response.status >= 500) {
-        throw new ServerError(response.statusText);
+    let body;
+    try {
+        body = await response.json();
+    } catch (ex) {
+        // TODO logger
     }
-    throw new Error((await response.json()).message);
+    if (response.status === 400 && body.detail) {
+        throw new PostMessageError(body.message, body.detail);
+    } else if (response.status >= 400 && response.status < 500) {
+        throw new ClientError(getMessageFromBody(body));
+    }
+    if (response.status >= 500) {
+        throw new ServerError(getMessageFromBody(body));
+    }
+    throw new Error(getMessageFromBody(body));
 }
 
 /**
@@ -264,17 +281,23 @@ export async function getMessageIds(ignoreCache = false) {
                 JSON.stringify(result),
             );
         } catch (ex) {
-            // empty
+            // TODO logger
         }
         return result;
     }
+    let body;
+    try {
+        body = await response.json();
+    } catch (ex) {
+        // TODO logger
+    }
     if (response.status >= 400 && response.status < 500) {
         clearToekn();
-        throw new AuthError("用户已登出！");
+        throw new AuthError(getMessageFromBody(body));
     } else if (response.status >= 500) {
-        throw new ServerError(response.statusText);
+        throw new ServerError(getMessageFromBody(body));
     } else {
-        throw new UnknowError(response.statusText);
+        throw new UnknowError(getMessageFromBody(body));
     }
 }
 
@@ -306,12 +329,18 @@ export async function removeMessage(id) {
     if (response.ok) {
         return;
     }
+    let body;
+    try {
+        body = await response.json();
+    } catch (ex) {
+        // TODO logger
+    }
     if (response.status === 401) {
-        throw new AuthError("用户已登出！");
+        throw new AuthError(getMessageFromBody(body));
     } else if (response.status >= 500) {
-        throw new ServerError(response.statusText);
+        throw new ServerError(getMessageFromBody(body));
     } else {
-        throw new UnknowError(response.statusText);
+        throw new UnknowError(getMessageFromBody(body));
     }
 }
 
@@ -345,13 +374,18 @@ export async function register(username, password, email) {
     if (response.ok) {
         return;
     }
+    let body;
+    try {
+        body = await response.json();
+    } catch (ex) {
+        // TODO logger
+    }
     if (response.status === 400) {
-        const body = await response.json();
         throw new RegisterError(body.message, body.detail);
     } else if (response.status >= 500) {
-        throw new ServerError(response.statusText);
+        throw new ServerError(getMessageFromBody(body));
     } else {
-        throw new UnknowError(response.statusText);
+        throw new UnknowError(getMessageFromBody(body));
     }
 }
 
@@ -403,7 +437,12 @@ export async function logout() {
     if (!token) {
         throw new AuthError("用户已登出！");
     }
-    clearToekn();
+    try {
+        clearToekn();
+        clearUserInfo();
+    } catch (ex) {
+        // empty
+    }
     await fetch(USER_AUTH_ENDPOINT, {
         method: "DELETE",
         headers: {

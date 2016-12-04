@@ -9,6 +9,7 @@ import {
     AUTH_ERROR,
     LOGIN_ERROR,
     REGISTER_ERROR,
+    POST_MESSAGE_ERROR,
     UNKNOW_ERROR,
 } from "../constants";
 
@@ -65,6 +66,14 @@ export class RegisterError extends Error {
     constructor(msg, detail) {
         super(msg);
         this.errno = REGISTER_ERROR;
+        this.detail = detail;
+    }
+}
+
+export class PostMessageError extends Error {
+    constructor(msg, detail) {
+        super(msg);
+        this.errno = POST_MESSAGE_ERROR;
         this.detail = detail;
     }
 }

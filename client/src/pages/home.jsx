@@ -6,9 +6,10 @@ import { User, Jumbotron } from "../components";
 
 export default class Home extends Component {
     render() {
+        const { dispatch, userInfo } = this.props;
         return (
             <div>
-                <User />
+                <User userInfo={userInfo} dispatch={dispatch} />
                 <Jumbotron />
                 <div class="mid">
                     <div class="main">

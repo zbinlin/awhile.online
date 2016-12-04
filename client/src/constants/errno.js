@@ -8,4 +8,5 @@ export const TIMEOUT_ERROR          = 260;
 export const AUTH_ERROR             = 261;
 export const LOGIN_ERROR            = 262;
 export const REGISTER_ERROR         = 263;
+export const POST_MESSAGE_ERROR     = 264;
 export const UNKNOW_ERROR           = 65535;
