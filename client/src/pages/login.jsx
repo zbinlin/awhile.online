@@ -91,6 +91,7 @@ export default class Login extends Component {
         }
     }
     handleSubmit(evt) {
+        evt.preventDefault();
         const formEl = evt.target;
         const usernameEl = formEl["username"];
         const passwordEl = formEl["password"];

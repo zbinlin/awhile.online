@@ -98,6 +98,7 @@ class PostMessage extends Component {
         });
     }
     handleSubmit(evt) {
+        evt.preventDefault();
         const el = this._textAreaEl;
         const content = el.value;
         const { startTime, endTime } = this.state.range;
