@@ -4,8 +4,8 @@
   "description": "https://awhile.online",
   "main": "index.js",
   "scripts": {
-    "test-client": "BABEL_ENV=test-client jest 'client/*'",
-    "test-server": "BABEL_ENV=test-server jest 'server/*'",
+    "test-client": "BABEL_ENV=test_client jest 'client/*'",
+    "test-server": "BABEL_ENV=test_server jest 'server/*'",
     "test": "npm run test-server && npm run test-client",
     "webpack": "BABEL_ENV=webpack webpack",
     "serve": "babel-node server/index.js",

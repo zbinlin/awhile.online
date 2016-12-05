@@ -1,12 +1,12 @@
 {
 	"env": {
-        "test-client": {
+        "test_client": {
             "plugins": [
                 "./tools/babel-plugin-preact-to-react.js"
             ],
             "presets": ["react"]
         },
-        "test-server": {
+        "test_server": {
             "plugins": [
                 "rewire"
             ]
