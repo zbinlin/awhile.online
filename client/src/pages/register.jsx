@@ -164,7 +164,7 @@ export default class Register extends Component {
         const { userInfo, dispatch, register } = this.props;
         return (
             <div>
-                <User userInfo={userInfo} dispatch={dispatch} />
+                <User {...userInfo} dispatch={dispatch} />
                 <Jumbotron />
                 <div className="mid">
                     <div className="main">

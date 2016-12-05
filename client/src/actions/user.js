@@ -78,16 +78,19 @@ export function removeMessage(id) {
     return async dispatch => {
         await dispatch({
             type: REMOVE_MESSAGE_REQUEST,
+            payload: id,
         });
         try {
             await utils.removeMessage(id);
             return await dispatch({
                 type: REMOVE_MESSAGE_SUCCESS,
+                payload: id,
             });
         } catch (ex) {
             return await dispatch({
                 type: REMOVE_MESSAGE_FAILURE,
                 payload: {
+                    id,
                     errno: ex.errno,
                     message: ex.message,
                 },

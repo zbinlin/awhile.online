@@ -47,6 +47,41 @@ function saveToken(token, isRemember) {
         sessionStorage.setItem(USER_TOKEN_KEY, token);
     }
 }
+
+function getUserInfoFromLocal() {
+    try {
+        if (sessionStorage.has(SESSION_KEY_USER_INFO)) {
+            return JSON.parse(sessionStorage.getItem(SESSION_KEY_USER_INFO));
+        }
+    } catch (ex) {
+        // TODO logger
+    }
+}
+//function setUserInfoToLocal(info) {
+//    try {
+//        sessionStorage.setItem(SESSION_KEY_USER_INFO, JSON.stringify(info));
+//    } catch (ex) {
+//        // empty
+//    }
+//}
+
+function getMessageIdsFromLocal() {
+    try {
+        if (sessionStorage.has(SESSION_KEY_MESSAGE_IDS)) {
+            return JSON.parse(sessionStorage.getItem(SESSION_KEY_MESSAGE_IDS));
+        }
+    } catch (ex) {
+        // TODO logger
+    }
+}
+function setMessageIdsToLocal(ids) {
+    try {
+        sessionStorage.setItem(SESSION_KEY_MESSAGE_IDS, JSON.stringify(ids));
+    } catch (ex) {
+        // empty
+    }
+}
+
 function getMessageFromBody(body) {
     if (body && typeof body === "object") {
         if (body.message) {
@@ -123,12 +158,9 @@ export async function updateUserInfo(info) {
  */
 export async function getUserInfo(ignoreCache = false) {
     if (!ignoreCache) {
-        try {
-            if (sessionStorage.has(SESSION_KEY_USER_INFO)) {
-                return JSON.parse(sessionStorage.getItem(SESSION_KEY_USER_INFO));
-            }
-        } catch (ex) {
-            // TODO logger
+        const result = getUserInfoFromLocal();
+        if (result) {
+            return result;
         }
     }
 
@@ -237,12 +269,9 @@ export async function postMessage(content, startTime, ttl) {
  */
 export async function getMessageIds(ignoreCache = false) {
     if (!ignoreCache) {
-        try {
-            if (sessionStorage.has(SESSION_KEY_MESSAGE_IDS)) {
-                return JSON.parse(sessionStorage.getItem(SESSION_KEY_MESSAGE_IDS));
-            }
-        } catch (ex) {
-            // TODO logger
+        const result = getMessageIdsFromLocal();
+        if (result) {
+            return result;
         }
     }
 
@@ -328,7 +357,13 @@ export async function removeMessage(id) {
         throw new FetchError(ex.message);
     }
     if (response.ok) {
-        return;
+        const ids = await getMessageIds();
+        const idx = ids.indexOf(id);
+        if (idx > -1) {
+            ids.splice(idx, 1);
+            setMessageIdsToLocal(idx);
+        }
+        return id;
     }
     let body;
     try {

@@ -121,7 +121,7 @@ export default class Login extends Component {
         const { errorMessage, loggedIn, processing } = this.state;
         return (
             <div>
-                <User userInfo={userInfo} dispatch={dispatch} />
+                <User {...userInfo} dispatch={dispatch} />
                 <Jumbotron />
                 <div className="mid">
                     <div className="main">

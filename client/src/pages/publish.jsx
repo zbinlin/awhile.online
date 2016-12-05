@@ -166,7 +166,7 @@ class PostMessage extends Component {
 
 export default ({ userInfo, dispatch, message }) => (
     <div>
-        <User userInfo={userInfo} dispatch={dispatch} />
+        <User {...userInfo} dispatch={dispatch} />
         <Jumbotron />
         <div className="mid">
             <div className="main">

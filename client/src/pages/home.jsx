@@ -9,7 +9,7 @@ export default class Home extends Component {
         const { dispatch, userInfo } = this.props;
         return (
             <div>
-                <User userInfo={userInfo} dispatch={dispatch} />
+                <User {...userInfo} dispatch={dispatch} />
                 <Jumbotron />
                 <div class="mid">
                     <div class="main">

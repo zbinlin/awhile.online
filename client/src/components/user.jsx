@@ -1,56 +1,52 @@
 "use strict";
 
 import { h, Component } from "preact";
+import * as actions from "../actions";
 
-
-class Messages extends Component {
-    constructor(...args) {
-        super(...args);
-        this.removeMessage = this.removeMessage.bind(this);
+const Messages = ({ value: messageIds, reload, onRemoveMessage }) => {
+    if (!messageIds) {
+        return null;
     }
-    removeMessage(idx) {
-        return this.props.onRemoveMessage(idx);
-    }
-    render() {
-        const { props } = this.props;
-        let messages;
-        if (props.messages) {
-            messages = props.messages.map((msg, idx) => {
-                return (
-                    <li>
-                        <a href="/m/{msg}" target="_blank">{msg}</a>
-                        <a onClick={this.removeMessage.bind(null, idx)}
-                           className="delete-btn" aria-label="delete"
-                           title="Delete this message"></a>
-                    </li>
-                );
-            });
+    const content = (ids => {
+        if (ids.loading) {
+            return <div className="loading"></div>;
+        } else if (ids.error) {
+            return <div className="load-failure">加载失败！ <a onClick={reload}>重试</a></div>;
+        } else if (!ids.content.length) {
+            return <div className="empty"></div>;
         }
-
-        const content = (messages => {
-            if (Array.isArray(messages)) {
-                if (messages.length) {
-                    return (
-                        <ul className="links">
-                            {messages}
-                        </ul>
-                    );
-                } else {
-                    return <div className="empty"></div>;
-                }
-            } else {
-                return <div className="loading"></div>;
+        const messages = ids.content.map((obj, idx) => {
+            const { id, deleting, error } = obj;
+            let cls = "";
+            if (deleting) {
+                cls = "deleting";
+            } else if (error) {
+                cls = "delete-failure";
             }
-        })(messages);
+            return (
+                <li key={idx}>
+                    <a href={`/m/${obj.id}`} target="_blank">{id}</a>
+                    <a onClick={onRemoveMessage.bind(null, id)}
+                       className={`delete-btn ${cls}`} aria-label="delete button"
+                       title={error ? error.message : "Delete this message"}></a>
+                </li>
+            );
+        });
 
         return (
-            <div className="messages">
-                <div className="label">已发布的消息：</div>
-                {content}
-            </div>
+            <ul className="links">
+                {messages}
+            </ul>
         );
-    }
-}
+    })(messageIds);
+
+    return (
+        <div className="messages">
+            <div className="label">已发布的消息：</div>
+            {content}
+        </div>
+    );
+};
 
 export default class User extends Component {
     constructor(...args) {
@@ -59,11 +55,18 @@ export default class User extends Component {
         this.hideInfo = this.hideInfo.bind(this);
         this.logout = this.logout.bind(this);
         this.handleRemoveMessage = this.handleRemoveMessage.bind(this);
+        this.loadMessageIds = this.loadMessageIds.bind(this);
+    }
+    loadMessageIds() {
+        this.props.dispatch(actions.getMessageIds());
     }
     showInfo() {
         this.setState({
             shown: true,
         });
+        if (this.props.messageIds == null) {
+            this.loadMessageIds();
+        }
     }
     hideInfo() {
         this.setState({
@@ -71,29 +74,38 @@ export default class User extends Component {
         });
     }
     logout() {
+        this.props.dispatch(actions.logout());
     }
     handleRemoveMessage(idx) {
+        const { messageIds } = this.props;
+        if (!messageIds || messageIds[idx] == null) {
+            return;
+        }
+        const id = messageIds[idx];
+        this.props.dispatch(actions.removeMessage(id));
     }
     render() {
-        const { props, state } = this;
-        if (!props.userInfo) {
+        const { baseInfo, messageIds } = this.props;
+        const { shown } = this.state;
+        if (!baseInfo) {
             return null;
         }
 
         let detail;
-        if (state.shown) {
+        if (shown) {
             detail = [
                 <div className="backdrop"></div>,
                 <div className="detail">
                     <a className="close-btn" aria-label="Close" onClick={this.hideInfo}></a>
                     <div className="info">
                         <ul className="basic">
-                            <li>用户名：{props.userInfo.username}</li>
-                            <li>昵称：{props.userInfo.nickname}</li>
-                            <li>邮箱：{props.userInfo.email}</li>
+                            <li>用户名：{baseInfo.username}</li>
+                            <li>昵称：{baseInfo.nickname}</li>
+                            <li>邮箱：{baseInfo.email}</li>
                         </ul>
                     </div>
-                    <Messages value={props.userInfo.messages}
+                    <Messages value={messageIds}
+                              load={this.loadMessageIds}
                               onRemoveMessage={this.handleRemoveMessage} />
                 </div>,
             ];
