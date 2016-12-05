@@ -1,9 +1,22 @@
 "use strict";
 
-import React, { Component } from "react";
+import { h, Component } from "preact";
 import moment from "moment";
 
+const isSupportTouch = "ontouchstart" in window;
+
 const FORMATTER = "YYYY-MM-DD HH:mm:ss";
+
+function debounce(func, interval = 1000 / 60) {
+    let now = Date.now();
+    return function _debounce_(...args) {
+        if (Date.now() - now < interval) {
+            return;
+        }
+        func(...args);
+        now = Date.now();
+    };
+}
 
 class Track extends Component {
     constructor(...args) {
@@ -12,41 +25,76 @@ class Track extends Component {
         this.handleMouseDown = this.handleMouseDown.bind(this);
         this.handleMouseMove = this.handleMouseMove.bind(this);
         this.handleMouseUp = this.handleMouseUp.bind(this);
+        this.move = debounce(this.move.bind(this), 16);
+    }
+    getXFrom(evt) {
+        if (isSupportTouch) {
+            return evt.changedTouches[0].clientX;
+        } else {
+            return evt.clientX;
+        }
     }
     handleMouseDown(evt) {
         const target = evt.target;
-        this.x = evt.clientX;
+        this.x = this.getXFrom(evt);
         const { left, width } = target.getBoundingClientRect();
         this.containerWidth  = target.parentNode.getBoundingClientRect().width;
-        const offsetX = evt.clientX - left;
-        if (offsetX <= 16) {
+        const offsetX = this.x - left;
+        if (offsetX <= 6) {
             this.movingParts = "start";
-        } else if (offsetX >= width - 16) {
+            this.setState({
+                activeCls: "start",
+            });
+        } else if (offsetX >= width - 6) {
             this.movingParts = "end";
+            this.setState({
+                activeCls: "end",
+            });
         } else {
             this.movingParts = "whole";
+            this.setState({
+                activeCls: "whole",
+            });
             document.body.style.cursor = "grabbing";
         }
-        document.addEventListener("mousemove", this.handleMouseMove, false);
-        document.addEventListener("mouseup", this.handleMouseUp, false);
+        if (isSupportTouch) {
+            document.addEventListener("touchmove", this.handleMouseMove, false);
+            document.addEventListener("touchend", this.handleMouseUp, false);
+            document.addEventListener("touchcancel", this.handleMouseUp, false);
+        } else {
+            document.addEventListener("mousemove", this.handleMouseMove, false);
+            document.addEventListener("mouseup", this.handleMouseUp, false);
+        }
     }
     handleMouseMove(evt) {
-        const deltaX = evt.clientX - this.x;
-        this.move(deltaX);
-        this.x = evt.clientX;
+        this.tryToMove(evt);
     }
     handleMouseUp(evt) {
-        document.removeEventListener("mousemove", this.handleMouseMove, false);
-        document.removeEventListener("mouseup", this.handleMouseUp, false);
-        const deltaX = evt.clientX - this.x;
-        this.move(deltaX);
+        if (isSupportTouch) {
+            document.removeEventListener("touchmove", this.handleMouseMove, false);
+            document.removeEventListener("touchend", this.handleMouseUp, false);
+            document.removeEventListener("touchcancel", this.handleMouseUp, false);
+        } else {
+            document.removeEventListener("mousemove", this.handleMouseMove, false);
+            document.removeEventListener("mouseup", this.handleMouseUp, false);
+        }
+        this.tryToMove(evt);
         this.movingParts = "";
         this.x = null;
         this.containerWidth = null;
         document.body.style.cursor = "";
+        this.setState({
+            activeCls: "",
+        });
     }
-    move(deltaX) {
-        if (deltaX === 0) return;
+    tryToMove(evt) {
+        const x = this.getXFrom(evt);
+        this.deltaX = x - this.x;
+        this.move(() => (this.x = x, this.deltaX = 0));
+    }
+    move(callback) {
+        const deltaX = this.deltaX;
+        if (!this.deltaX) return;
         const { start, end, value } = this.props;
         const length = end - start;
         let ratio = deltaX / this.containerWidth;
@@ -98,9 +146,11 @@ class Track extends Component {
             default:
                 return;
         }
+        callback();
     }
     render() {
         const { start, end, value } = this.props;
+        const { activeCls } = this.state;
         const length = end - start;
         const x = (value.startTime - start) / length * 100;
         const w = (value.endTime - value.startTime) / length * 100;
@@ -108,10 +158,17 @@ class Track extends Component {
             width: `${w.toFixed(6)}%`,
             left: `${x.toFixed(6)}%`,
         };
-        return (
-            <span className="track" style={styl}
-                  onMouseDown={this.handleMouseDown}></span>
-        );
+        if (isSupportTouch) {
+            return (
+                <span className={`track ${activeCls}`} style={styl}
+                      onTouchStart={this.handleMouseDown}></span>
+            );
+        } else {
+            return (
+                <span className={`track ${activeCls}`} style={styl}
+                      onMouseDown={this.handleMouseDown}></span>
+            );
+        }
     }
 }
 
@@ -170,15 +227,15 @@ export default class TimeRange extends Component {
         const endTimeString = this.timeToString(range.endTime);
         return (
             <div className="time-range-container">
-                <div className="range"
-                     data-start-time={this.timeToString(start)}
-                     data-end-time={this.timeToString(end)}>
-                    <Track start={start} end={end} value={range} onChange={onChange} />
-                </div>
                 <div className="range-ipt">
                     <input type="text" value={startTimeString}
                            onChange={this.handleStartTimeChange} />-<input
                     type="text" value={endTimeString} onChange={this.handleEndTimeChange} />
+                </div>
+                <div className="range"
+                     data-start-time={this.timeToString(start)}
+                     data-end-time={this.timeToString(end)}>
+                    <Track start={start} end={end} value={range} onChange={onChange} />
                 </div>
             </div>
         );
