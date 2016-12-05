@@ -4,7 +4,9 @@
   "description": "https://awhile.online",
   "main": "index.js",
   "scripts": {
-    "test": "BABEL_ENV=test jest",
+    "test-client": "BABEL_ENV=test-client jest 'client/*'",
+    "test-server": "BABEL_ENV=test-server jest 'server/*'",
+    "test": "npm run test-server && npm run test-client",
     "webpack": "BABEL_ENV=webpack webpack",
     "serve": "babel-node server/index.js",
     "lint": "eslint server/**/*.js && eslint client/src/**/*.js{x,}"

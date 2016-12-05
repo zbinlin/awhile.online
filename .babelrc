@@ -1,12 +1,17 @@
 {
 	"env": {
-        "test": {
+        "test-client": {
             "plugins": [
-                "rewire",
-                "./tools/babel-plugin-preact-to-react.js",
+                "./tools/babel-plugin-preact-to-react.js"
             ],
             "presets": ["react"]
         },
+        "test-server": {
+            "plugins": [
+                "rewire"
+            ]
+        },
+
         "webpack": {
             "presets": ["react", "latest"],
             "plugins": [
