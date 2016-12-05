@@ -13,7 +13,7 @@
         },
 
         "webpack": {
-            "presets": ["react", "latest"],
+            "presets": ["latest", "react", "stage-3"],
             "plugins": [
                 ["transform-react-jsx", { "pragma": "h" }]
             ]
