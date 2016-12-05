@@ -7,7 +7,7 @@ import User from "../user.jsx";
 
 it("User renders correctly", () => {
     const tree = renderer.create(
-        <User />
+        <User userInfo={{}} dispatch={() => {}} />
     ).toJSON();
     expect(tree).toMatchSnapshot();
 });

@@ -11,11 +11,16 @@ import {
     register,
     login,
     logout,
-    __RewireAPI__,
 } from "../api";
 import * as customError from "../custom-error";
 import "whatwg-fetch";
+import {
+    SESSION_KEY_USER_INFO,
+    SESSION_KEY_MESSAGE_IDS,
+    KEY_USER_TOKEN,
+} from "../../constants";
 
+const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhZG1pbiJ9.zXc0vYXrxf5ee4hPHoewiMIO317dE1eJB2FAvN2Fges";
 
 class Storage extends Map {
     getItem(key) {
@@ -63,14 +68,12 @@ describe("test updateUserInfo api", () => {
         };
         updateUserInfo(userInfo);
         expect(window.sessionStorage.getItem(
-            __RewireAPI__.__GetDependency__("SESSION_KEY_USER_INFO")
+            SESSION_KEY_USER_INFO,
         )).toBe(JSON.stringify(userInfo));
     });
 });
 
 describe("test getUserInfo api", () => {
-    const USER_INFO_KEY = __RewireAPI__.__GetDependency__("SESSION_KEY_USER_INFO");
-    const USER_TOKEN_KEY = __RewireAPI__.__GetDependency__("USER_TOKEN_KEY");
     beforeEach(() => {
         window.sessionStorage.clear();
         window.localStorage.clear();
@@ -86,11 +89,10 @@ describe("test getUserInfo api", () => {
         const data = {
             username: "admin",
         };
-        window.sessionStorage.setItem(USER_INFO_KEY, JSON.stringify(data));
+        window.sessionStorage.setItem(SESSION_KEY_USER_INFO, JSON.stringify(data));
         expect(await getUserInfo()).toEqual(data);
     });
     describe("fetch remote data", () => {
-        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhZG1pbiJ9.zXc0vYXrxf5ee4hPHoewiMIO317dE1eJB2FAvN2Fges";
         function createResponse(body = JSON.stringify({
             username: "admin",
         }), init) {
@@ -105,7 +107,7 @@ describe("test getUserInfo api", () => {
         var result = {};
         beforeEach(() => {
             result.response = createResponse();
-            window.sessionStorage.setItem(USER_TOKEN_KEY, token);
+            window.sessionStorage.setItem(KEY_USER_TOKEN, TOKEN);
             Object.defineProperty(window, "fetch", {
                 value: jest.fn(async (...args) => result.response),
                 writable: true,
@@ -124,12 +126,12 @@ describe("test getUserInfo api", () => {
             const expected = {
                 username: "admin",
             };
-            window.sessionStorage.setItem(USER_INFO_KEY, JSON.stringify(data));
+            window.sessionStorage.setItem(SESSION_KEY_USER_INFO, JSON.stringify(data));
             expect(await getUserInfo(true)).toEqual(expected);
-            expect(JSON.parse(window.sessionStorage.getItem(USER_INFO_KEY))).toEqual(expected);
+            expect(JSON.parse(window.sessionStorage.getItem(SESSION_KEY_USER_INFO))).toEqual(expected);
         });
         it("should returns null that the token is invalid", async () => {
-            window.sessionStorage.setItem(USER_TOKEN_KEY, "123");
+            window.sessionStorage.setItem(KEY_USER_TOKEN, "123");
             expect(await getUserInfo()).toBe(null);
         });
         it("should returns null that the fetch api throws FetchError", async () => {
@@ -140,7 +142,7 @@ describe("test getUserInfo api", () => {
             expect(await getUserInfo()).toEqual({
                 username: "admin",
             });
-            expect(window.sessionStorage.getItem(USER_INFO_KEY)).toBe(JSON.stringify({
+            expect(window.sessionStorage.getItem(SESSION_KEY_USER_INFO)).toBe(JSON.stringify({
                 username: "admin",
             }));
         });
@@ -224,10 +226,8 @@ describe("test postMessage api", () => {
         });
     });
     describe("post a message by logged in user", () => {
-        const KEY = __RewireAPI__.__GetDependency__("USER_TOKEN_KEY");
-        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhZG1pbiJ9.zXc0vYXrxf5ee4hPHoewiMIO317dE1eJB2FAvN2Fges";
         beforeEach(() => {
-            window.sessionStorage.setItem(KEY, token);
+            window.sessionStorage.setItem(KEY_USER_TOKEN, TOKEN);
         });
         afterEach(() => {
             window.sessionStorage.clear();
@@ -238,7 +238,7 @@ describe("test postMessage api", () => {
             const ttl = 30;
             const result = await postMessage(content, startTime, ttl);
             expect(window.fetch.mock.calls.length).toBe(1);
-            expect(window.fetch.mock.calls[0][1].headers["Authorization"]).toBe(`Bearer ${token}`);
+            expect(window.fetch.mock.calls[0][1].headers["Authorization"]).toBe(`Bearer ${TOKEN}`);
             expect(window.fetch.mock.calls[0][1].body).toBe(JSON.stringify({
                 content,
                 startTime,
@@ -285,9 +285,6 @@ describe("test getMessageIds api", () => {
         return new Response(body, Object.assign({}, defaultOpt, init));
     }
     var result = {};
-    const KEY = __RewireAPI__.__GetDependency__("USER_TOKEN_KEY");
-    const MESSAGE_IDS_KEY = __RewireAPI__.__GetDependency__("SESSION_KEY_MESSAGE_IDS");
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhZG1pbiJ9.zXc0vYXrxf5ee4hPHoewiMIO317dE1eJB2FAvN2Fges";
     beforeEach(() => {
         result.response = createResponse();
         Object.defineProperty(window, "fetch", {
@@ -295,7 +292,7 @@ describe("test getMessageIds api", () => {
             writable: true,
             configurable: true,
         });
-        window.sessionStorage.setItem(KEY, token);
+        window.sessionStorage.setItem(KEY_USER_TOKEN, TOKEN);
     });
     afterEach(() => {
         window.sessionStorage.clear();
@@ -304,7 +301,7 @@ describe("test getMessageIds api", () => {
     });
     it("should returns from cached", async () => {
         const data = ["123"];
-        window.sessionStorage.setItem(MESSAGE_IDS_KEY, JSON.stringify(data));
+        window.sessionStorage.setItem(SESSION_KEY_MESSAGE_IDS, JSON.stringify(data));
         expect(await getMessageIds()).toEqual(data);
     });
     it("should throws AuthError that the user is not login", async () => {
@@ -318,7 +315,7 @@ describe("test getMessageIds api", () => {
         throw new Error("unexpect error");
     });
     it("should throws AuthError that the token is invalid", async () => {
-        window.sessionStorage.setItem(KEY, "ooo");
+        window.sessionStorage.setItem(KEY_USER_TOKEN, "ooo");
         try {
             await getMessageIds();
         } catch (ex) {
@@ -341,16 +338,16 @@ describe("test getMessageIds api", () => {
     it("should returns message ids", async () => {
         const result = await getMessageIds();
         expect(window.fetch.mock.calls.length).toBe(1);
-        expect(window.fetch.mock.calls[0][1].headers["Authorization"]).toContain(token);
+        expect(window.fetch.mock.calls[0][1].headers["Authorization"]).toContain(TOKEN);
         expect(result).toEqual(defaultData);
-        expect(window.sessionStorage.getItem(MESSAGE_IDS_KEY))
+        expect(window.sessionStorage.getItem(SESSION_KEY_MESSAGE_IDS))
             .toBe(JSON.stringify(defaultData));
     });
     it("should ignore cached", async () => {
         const data = ["123"];
-        window.sessionStorage.setItem(MESSAGE_IDS_KEY, JSON.stringify(data));
+        window.sessionStorage.setItem(SESSION_KEY_MESSAGE_IDS, JSON.stringify(data));
         expect(await getMessageIds(true)).toEqual(defaultData);
-        expect(JSON.parse(window.sessionStorage.getItem(MESSAGE_IDS_KEY))).toEqual(defaultData);
+        expect(JSON.parse(window.sessionStorage.getItem(SESSION_KEY_MESSAGE_IDS))).toEqual(defaultData);
     });
     it("should should AuthError that the token has been expired(statusCode = 401)", async () => {
         result.response = createResponse(null, {
@@ -386,8 +383,7 @@ describe("test removeMessage api", () => {
         return new Response(body, Object.assign({}, defaultOpt, init));
     }
     var result = {};
-    const KEY = __RewireAPI__.__GetDependency__("USER_TOKEN_KEY");
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhZG1pbiJ9.zXc0vYXrxf5ee4hPHoewiMIO317dE1eJB2FAvN2Fges";
+    const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhZG1pbiJ9.zXc0vYXrxf5ee4hPHoewiMIO317dE1eJB2FAvN2Fges";
     beforeEach(() => {
         result.response = createResponse();
         Object.defineProperty(window, "fetch", {
@@ -395,7 +391,8 @@ describe("test removeMessage api", () => {
             writable: true,
             configurable: true,
         });
-        window.sessionStorage.setItem(KEY, token);
+        window.sessionStorage.setItem(KEY_USER_TOKEN, TOKEN);
+        window.sessionStorage.setItem(SESSION_KEY_MESSAGE_IDS, "");
     });
     afterEach(() => {
         window.sessionStorage.clear();
@@ -424,10 +421,10 @@ describe("test removeMessage api", () => {
         throw new Error("unexpect error");
     });
     it("should delete message id success", async () => {
-        const result = await removeMessage();
+        const result = await removeMessage("1234567890");
         expect(window.fetch.mock.calls.length).toBe(1);
-        expect(window.fetch.mock.calls[0][1].headers["Authorization"]).toContain(token);
-        expect(result).toBeUndefined();
+        expect(window.fetch.mock.calls[0][1].headers["Authorization"]).toContain(TOKEN);
+        expect(result).toBe("1234567890");
     });
     it("should should AuthError that the token has been expired(statusCode = 401)", async () => {
         result.response = createResponse(null, {
@@ -522,10 +519,8 @@ describe("test register api", () => {
 });
 
 describe("test login api", () => {
-    const KEY = __RewireAPI__.__GetDependency__("USER_TOKEN_KEY");
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhZG1pbiJ9.zXc0vYXrxf5ee4hPHoewiMIO317dE1eJB2FAvN2Fges";
     function createResponse(body = JSON.stringify({
-        token,
+        token: TOKEN,
     }), init) {
         const defaultOpt = {
             status: 200,
@@ -562,23 +557,21 @@ describe("test login api", () => {
     });
     it("should login success without remember login status", async () => {
         const result = await login("admin", "123456");
-        expect(result).toBe(token);
-        expect(window.sessionStorage.getItem(KEY)).toBe(token);
-        expect(window.localStorage.getItem(KEY)).toBeUndefined();
+        expect(result).toBe(TOKEN);
+        expect(window.sessionStorage.getItem(KEY_USER_TOKEN)).toBe(TOKEN);
+        expect(window.localStorage.getItem(KEY_USER_TOKEN)).toBeUndefined();
     });
     it("should login success with remember login status", async () => {
         const result = await login("admin", "123456", true);
-        expect(result).toBe(token);
-        expect(window.sessionStorage.getItem(KEY)).toBeUndefined();
-        expect(window.localStorage.getItem(KEY)).toBe(token);
+        expect(result).toBe(TOKEN);
+        expect(window.sessionStorage.getItem(KEY_USER_TOKEN)).toBeUndefined();
+        expect(window.localStorage.getItem(KEY_USER_TOKEN)).toBe(TOKEN);
     });
 });
 
 describe("test logout api", () => {
-    const KEY = __RewireAPI__.__GetDependency__("USER_TOKEN_KEY");
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhZG1pbiJ9.zXc0vYXrxf5ee4hPHoewiMIO317dE1eJB2FAvN2Fges";
     function createResponse(body = JSON.stringify({
-        token,
+        TOKEN,
     }), init) {
         const defaultOpt = {
             status: 200,
@@ -595,8 +588,8 @@ describe("test logout api", () => {
             writable: true,
             configurable: true,
         });
-        window.sessionStorage.setItem(KEY, token);
-        window.localStorage.setItem(KEY, token);
+        window.sessionStorage.setItem(KEY_USER_TOKEN, TOKEN);
+        window.localStorage.setItem(KEY_USER_TOKEN, TOKEN);
     });
     afterEach(() => {
         window.sessionStorage.clear();
@@ -618,6 +611,6 @@ describe("test logout api", () => {
     it("should logout success", async () => {
         await logout();
         expect(window.fetch.mock.calls.length).toBe(1);
-        expect(window.fetch.mock.calls[0][1].headers["Authorization"]).toContain(token);
+        expect(window.fetch.mock.calls[0][1].headers["Authorization"]).toContain(TOKEN);
     });
 });

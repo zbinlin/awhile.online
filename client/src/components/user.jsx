@@ -56,6 +56,9 @@ export default class User extends Component {
         this.logout = this.logout.bind(this);
         this.handleRemoveMessage = this.handleRemoveMessage.bind(this);
         this.loadMessageIds = this.loadMessageIds.bind(this);
+        this.state = {
+            shown: false,
+        };
     }
     loadMessageIds() {
         this.props.dispatch(actions.getMessageIds());

@@ -11,28 +11,30 @@ import {
     PostMessageError,
     RegisterError,
 } from "./custom-error";
+import {
+    SESSION_KEY_USER_INFO,
+    SESSION_KEY_MESSAGE_IDS,
+    KEY_USER_TOKEN,
+} from "../constants";
 
 const MESSAGE_ENDPOINT = "/api/messages";
 const USER_INFO_ENDPOINT = "/api/users";
 const USER_AUTH_ENDPOINT = "/api/authentication";
-const SESSION_KEY_USER_INFO = "user-info";
-const SESSION_KEY_MESSAGE_IDS = "user-message-ids";
-const USER_TOKEN_KEY = "user-token";
 
 function getToken() {
-    if (sessionStorage.has(USER_TOKEN_KEY)) {
-        return sessionStorage.getItem(USER_TOKEN_KEY);
-    } else if (localStorage.has(USER_TOKEN_KEY)) {
-        return localStorage.getItem(USER_TOKEN_KEY);
+    if (sessionStorage.has(KEY_USER_TOKEN)) {
+        return sessionStorage.getItem(KEY_USER_TOKEN);
+    } else if (localStorage.has(KEY_USER_TOKEN)) {
+        return localStorage.getItem(KEY_USER_TOKEN);
     } else {
         return null;
     }
 }
 function clearToekn() {
-    if(sessionStorage.has(USER_TOKEN_KEY)) {
-        sessionStorage.removeItem(USER_TOKEN_KEY);
+    if(sessionStorage.has(KEY_USER_TOKEN)) {
+        sessionStorage.removeItem(KEY_USER_TOKEN);
     } else {
-        localStorage.removeItem(USER_TOKEN_KEY);
+        localStorage.removeItem(KEY_USER_TOKEN);
     }
 }
 function clearUserInfo() {
@@ -42,9 +44,9 @@ function clearUserInfo() {
 
 function saveToken(token, isRemember) {
     if (isRemember) {
-        localStorage.setItem(USER_TOKEN_KEY, token);
+        localStorage.setItem(KEY_USER_TOKEN, token);
     } else {
-        sessionStorage.setItem(USER_TOKEN_KEY, token);
+        sessionStorage.setItem(KEY_USER_TOKEN, token);
     }
 }
 
@@ -357,11 +359,13 @@ export async function removeMessage(id) {
         throw new FetchError(ex.message);
     }
     if (response.ok) {
-        const ids = await getMessageIds();
-        const idx = ids.indexOf(id);
-        if (idx > -1) {
-            ids.splice(idx, 1);
-            setMessageIdsToLocal(idx);
+        const ids = getMessageIdsFromLocal();
+        if (ids) {
+            const idx = ids.indexOf(id);
+            if (idx > -1) {
+                ids.splice(idx, 1);
+                setMessageIdsToLocal(idx);
+            }
         }
         return id;
     }
