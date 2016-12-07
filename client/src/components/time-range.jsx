@@ -50,11 +50,13 @@ class Track extends Component {
                 activeCls: "end",
             });
         } else if (offsetX <= 6) {
+            if (this.props.fixedStart) return;
             this.movingParts = "start";
             this.setState({
                 activeCls: "start",
             });
         } else {
+            if (this.props.fixedStart) return;
             this.movingParts = "whole";
             this.setState({
                 activeCls: "whole",
@@ -196,7 +198,8 @@ export default class TimeRange extends Component {
     handleStartTimeChange(evt) {
         const target = evt.target;
         const value = target.value;
-        const { start, end, value: range } = this.props;
+        const { start, end, value: range, fixedStart } = this.props;
+        if (fixedStart) return;
         try {
             const startTime = Math.min(
                 Math.max(start, this.parseStringTime(value)),
@@ -226,7 +229,7 @@ export default class TimeRange extends Component {
         }
     }
     render() {
-        const { value: range, start, end, onChange } = this.props;
+        const { value: range, start, end, onChange, fixedStart } = this.props;
         const startTimeString = this.timeToString(range.startTime);
         const endTimeString = this.timeToString(range.endTime);
         return (
@@ -239,7 +242,7 @@ export default class TimeRange extends Component {
                 <div className="range"
                      data-start-time={this.timeToString(start)}
                      data-end-time={this.timeToString(end)}>
-                    <Track start={start} end={end} value={range} onChange={onChange} />
+                    <Track start={start} end={end} value={range} onChange={onChange} fixedStart={fixedStart} />
                 </div>
             </div>
         );

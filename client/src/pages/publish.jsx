@@ -155,7 +155,9 @@ class PostMessage extends Component {
                     </div>
                     <div className="metadata-container">
                         <div className="label">设置生效时间：</div>
-                        <TimeRange start={startTime} end={endTime} value={range} onChange={this.handleTimeRangeChange} />
+                        <TimeRange start={startTime} end={endTime} value={range}
+                                   fixedStart={!this.props.isLoggedIn}
+                                   onChange={this.handleTimeRangeChange} />
                     </div>
                     { errorMessage && <div className="tips">{errorMessage}</div> }
                     <div className="btn-container">
