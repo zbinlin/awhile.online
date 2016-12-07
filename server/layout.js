@@ -32,6 +32,7 @@ layoutRouter.get([
     <head>
         <meta charset="UTF-8">
         <title>Awhile.Online</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="/stylesheets/normalize.css" rel="stylesheet">
         <link href="/stylesheets/layout.css" rel="stylesheet">
         <script src="/javascripts/bundle.js" async></script>
@@ -50,10 +51,7 @@ layoutRouter.get([
 
 // mount /v/{hash}
 // mount /{GUEST_NAME}/{hash}
-layoutRouter.get([
-    "/m/:id",
-    `/${GUEST_NAME}/:id`,
-], function* () {
+const middleware = function* messageMiddleware() {
     const { response: res } = this;
     const { id } = this.params;
     let content;
@@ -61,6 +59,7 @@ layoutRouter.get([
         content = yield store.get(id);
         res.status = 200;
     } catch (ex) {
+        // TODO logger
         res.status = 404;
     }
     let fragment = "";
@@ -85,11 +84,12 @@ layoutRouter.get([
     <head>
         <meta charset="UTF-8">
         <title>Awhile.Online</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noindex">
         <link href="/stylesheets/normalize.css" rel="stylesheet">
         <link href="/stylesheets/layout.css" rel="stylesheet">
         <script>
-            window.messageContent = ${outputToJS(content)};
+            window.messageContent = ${content && outputToJS(content)};
         </script>
         <script src="/javascripts/bundle.js" async></script>
     </head>
@@ -112,7 +112,9 @@ layoutRouter.get([
         </div>
     </body>
 </html>`;
-});
+};
+layoutRouter.get("/m/:id", middleware);
+layoutRouter.get(`/${GUEST_NAME}/:id`, middleware);
 
 export default function layout() {
     const a = layoutRouter.routes();
