@@ -2,6 +2,21 @@
 
 import validator from "validator";
 
+/**
+ * @typedef {Object} ValidityState
+ * @property {boolean} valueMissing
+ * @property {boolean} typeMismatch
+ * @property {boolean} patternMismatch
+ * @property {boolean} tooLong
+ * @property {boolean} tooShort
+ * @property {boolean} rangeUnderflow
+ * @property {boolean} rangeOverflow
+ * @property {boolean} stepMismatch
+ * @property {boolean} badInput
+ * @property {boolean} customError
+ * @property {boolean} valid
+ */
+
 function checkLength(str, min, max) {
     const validity = {
         valid: true,
@@ -70,4 +85,37 @@ export function validateMessage({ content }) {
     } else {
         return validities;
     }
+}
+
+
+/**
+ * @param {ValidityState}
+ * @param {Object} validationMessages - map validityState to error message
+ * @param {string} [separator="; "]
+ * @return {string}
+ */
+export function generateValidationMessage(validityState, validationMessage, separator = "; ") {
+    if (validityState.valid) {
+        return "";
+    }
+    if (validityState.customError) {
+        return validityState.customErrorMessage;
+    }
+    const messages = [];
+    for (const key of Object.keys(validityState)) {
+        if (key === "valid" || key === "customError" || key === "customErrorMessage") {
+            continue;
+        }
+        messages.push(validationMessage[key]);
+    }
+    return messages.join(separator);
+}
+
+
+export function mapValidityStatesToMessages(states, messages) {
+    const keys = Object.keys(states);
+    return keys.reduce((mapped, key) => {
+        mapped[key] = generateValidationMessage(states[key], messages[key]);
+        return mapped;
+    }, {});
 }

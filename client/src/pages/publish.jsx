@@ -7,6 +7,18 @@ import { User, Jumbotron, Nav, TimeRange, QRCode } from "../components";
 import { isObjectEqual } from "../utils";
 import { MAX_MESSAGE_CONTENT_LENGTH } from "../constants";
 import * as actions from "../actions";
+import {
+    validateMessage,
+    mapValidityStatesToMessages,
+} from "../../../isomorphic/validate";
+
+const ERROR_MESSAGES = {
+    content: {
+        typeMismatch: "格式不对",
+        tooShort: "内容不能为空",
+        tooLong: "内容已超过 1024 个字符",
+    },
+};
 
 class PostedSuccess extends Component {
     constructor(...args) {
@@ -97,10 +109,32 @@ class PostMessage extends Component {
             },
         };
     }
+    normalizeErrorMessage(messages) {
+        if (!messages) {
+            return messages;
+        } else if (typeof messages === "string") {
+            return messages;
+        } else if (Array.isArray(messages)) {
+            return messages.join("; ");
+        } else if (typeof messages === "object") {
+            const keys = Object.keys(messages);
+            return keys.map(key => messages[key]).join("; ");
+        }
+    }
     updateStateFrom(props) {
+        let errorMessage;
+        if (props.error) {
+            if (props.error.detail) {
+                errorMessage = this.normalizeErrorMessage(
+                    mapValidityStatesToMessages(props.error.detail, ERROR_MESSAGES),
+                );
+            } else {
+                errorMessage = props.error.message;
+            }
+        }
         this.setState({
             posting: props.posting,
-            errorMessage: props.error && props.error.message,
+            errorMessage,
         });
     }
     handleSubmit(evt) {
@@ -109,9 +143,23 @@ class PostMessage extends Component {
         const content = el.value;
         const { startTime, endTime } = this.state.range;
         const ttl = endTime - startTime;
-        this.props.dispatch(
-            actions.postMessage(content, startTime, ttl),
-        );
+        const result = validateMessage({
+            content,
+            startTime,
+            ttl,
+        });
+        if (result !== true) {
+            const errorMessage = this.normalizeErrorMessage(
+                mapValidityStatesToMessages(result, ERROR_MESSAGES),
+            );
+            this.setState({
+                errorMessage,
+            });
+        } else {
+            this.props.dispatch(
+                actions.postMessage(content, startTime, ttl),
+            );
+        }
     }
     calcRemainingCharacterCount() {
         const el = this._textAreaEl;
@@ -159,7 +207,7 @@ class PostMessage extends Component {
                                    fixedStart={!this.props.isLoggedIn}
                                    onChange={this.handleTimeRangeChange} />
                     </div>
-                    { errorMessage && <div className="tips">{errorMessage}</div> }
+                    { errorMessage && <div className="form-ctl"><div className="tips invalid">{errorMessage}</div></div> }
                     <div className="btn-container">
                         <button type="submit" disabled={characterCount < 0}
                                 className={`btn btn-primary ${submitCls}`}>

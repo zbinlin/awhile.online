@@ -66,10 +66,9 @@ export default class User extends Component {
     showInfo() {
         this.setState({
             shown: true,
-        });
-        if (this.props.messageIds == null) {
+        }, () => {
             this.loadMessageIds();
-        }
+        });
     }
     hideInfo() {
         this.setState({

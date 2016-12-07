@@ -14,6 +14,10 @@ import {
     Message,
 } from "./pages";
 
+window.addEventListener("shared-session-storage", function (evt) {
+    store.dispatch(actions.getUserInfo());
+});
+
 class App extends Component {
     constructor(...args) {
         super(...args);

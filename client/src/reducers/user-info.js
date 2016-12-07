@@ -54,11 +54,10 @@ function messageIds(state = {}, action) {
             });
         case REMOVE_MESSAGE_SUCCESS:
             return (() => {
-                const idx = state.content.indexOf(action.payload);
+                const idx = state.content.findIndex(obj => obj.id == action.payload);
                 if (idx === -1) return state;
                 const ary = state.content.slice();
                 ary.splice(idx, 1);
-                console.log(idx, action.payload, state.content, ary);
                 return Object.assign({}, state, {
                     content: ary,
                 });

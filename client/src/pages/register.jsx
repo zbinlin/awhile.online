@@ -4,7 +4,10 @@ import { h, Component } from "preact";
 
 import { User, Jumbotron, Nav } from "../components";
 import * as actions from "../actions";
-import { validateRegister } from "../../../isomorphic/validate";
+import {
+    validateRegister,
+    mapValidityStatesToMessages,
+} from "../../../isomorphic/validate";
 
 const ERROR_MESSAGES = {
     username: {
@@ -36,29 +39,6 @@ class RegisterForm extends Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.togglePasswordViewer = this.togglePasswordViewer.bind(this);
     }
-    getValidityMessage(validityState, errorMessages) {
-        if (validityState.valid) {
-            return "";
-        }
-        if (validityState.customError) {
-            return validityState.customErrorMessage;
-        }
-        const messages = [];
-        for (const key of Object.keys(validityState)) {
-            if (key === "valid" || key === "customError" || key === "customErrorMessage") {
-                continue;
-            }
-            messages.push(errorMessages[key]);
-        }
-        return messages.join("; ");
-    }
-    convertValidityState({ username, password, email }) {
-        const state = {};
-        state.usernameValidityMessage = this.getValidityMessage(username, ERROR_MESSAGES["username"]);
-        state.passwordValidityMessage = this.getValidityMessage(password, ERROR_MESSAGES["password"]);
-        state.emailValidityMessage = this.getValidityMessage(email, ERROR_MESSAGES["email"]);
-        return state;
-    }
     updateStateFrom(props) {
         const nextState = {};
         nextState.submitting = props.processing;
@@ -70,8 +50,20 @@ class RegisterForm extends Component {
             nextState.errorMessage = message;
             return this.setState(nextState);
         }
-        Object.assign(nextState, this.convertValidityState(detail));
+        Object.assign(
+            nextState,
+            this.normalizeErrorMessageName(
+                mapValidityStatesToMessages(detail, ERROR_MESSAGES),
+            ),
+        );
         this.setState(nextState);
+    }
+    normalizeErrorMessageName(message) {
+        return {
+            usernameValidityMessage: message.username,
+            passwordValidityMessage: message.password,
+            emailValidityMessage: message.email,
+        };
     }
     handleSubmit(evt) {
         evt.preventDefault();
@@ -87,8 +79,8 @@ class RegisterForm extends Component {
         });
 
         if (result !== true) {
-            const state = this.convertValidityState(result);
-            this.setState(state);
+            const state = mapValidityStatesToMessages(result, ERROR_MESSAGES);
+            this.setState(this.normalizeErrorMessageName(state));
             return;
         }
         this.props.dispatch(actions.register(username, password, email));
