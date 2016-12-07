@@ -16,52 +16,51 @@ import {
     SESSION_KEY_MESSAGE_IDS,
     KEY_USER_TOKEN,
 } from "../constants";
+import sharedSessionStorage from "shared-session-storage";
 
 const MESSAGE_ENDPOINT = "/api/messages";
 const USER_INFO_ENDPOINT = "/api/users";
 const USER_AUTH_ENDPOINT = "/api/authentication";
 
 function getToken() {
-    if (sessionStorage.has(KEY_USER_TOKEN)) {
-        return sessionStorage.getItem(KEY_USER_TOKEN);
-    } else if (localStorage.has(KEY_USER_TOKEN)) {
+    const ret = sharedSessionStorage.getItem(KEY_USER_TOKEN);
+    if (ret === null) {
         return localStorage.getItem(KEY_USER_TOKEN);
     } else {
-        return null;
+        return ret;
     }
 }
 function clearToekn() {
-    if(sessionStorage.has(KEY_USER_TOKEN)) {
-        sessionStorage.removeItem(KEY_USER_TOKEN);
+    const ret = sharedSessionStorage.getItem(KEY_USER_TOKEN);
+    if (ret !== null) {
+        sharedSessionStorage.removeItem(KEY_USER_TOKEN);
     } else {
         localStorage.removeItem(KEY_USER_TOKEN);
     }
 }
 function clearUserInfo() {
-    sessionStorage.removeItem(SESSION_KEY_USER_INFO);
-    sessionStorage.removeItem(SESSION_KEY_MESSAGE_IDS);
+    sharedSessionStorage.removeItem(SESSION_KEY_USER_INFO);
+    sharedSessionStorage.removeItem(SESSION_KEY_MESSAGE_IDS);
 }
 
 function saveToken(token, isRemember) {
     if (isRemember) {
         localStorage.setItem(KEY_USER_TOKEN, token);
     } else {
-        sessionStorage.setItem(KEY_USER_TOKEN, token);
+        sharedSessionStorage.setItem(KEY_USER_TOKEN, token);
     }
 }
 
 function getUserInfoFromLocal() {
     try {
-        if (sessionStorage.has(SESSION_KEY_USER_INFO)) {
-            return JSON.parse(sessionStorage.getItem(SESSION_KEY_USER_INFO));
-        }
+        return JSON.parse(sharedSessionStorage.getItem(SESSION_KEY_USER_INFO));
     } catch (ex) {
         // TODO logger
     }
 }
 //function setUserInfoToLocal(info) {
 //    try {
-//        sessionStorage.setItem(SESSION_KEY_USER_INFO, JSON.stringify(info));
+//        sharedSessionStorage.setItem(SESSION_KEY_USER_INFO, JSON.stringify(info));
 //    } catch (ex) {
 //        // empty
 //    }
@@ -69,16 +68,14 @@ function getUserInfoFromLocal() {
 
 function getMessageIdsFromLocal() {
     try {
-        if (sessionStorage.has(SESSION_KEY_MESSAGE_IDS)) {
-            return JSON.parse(sessionStorage.getItem(SESSION_KEY_MESSAGE_IDS));
-        }
+        return JSON.parse(sharedSessionStorage.getItem(SESSION_KEY_MESSAGE_IDS));
     } catch (ex) {
         // TODO logger
     }
 }
 function setMessageIdsToLocal(ids) {
     try {
-        sessionStorage.setItem(SESSION_KEY_MESSAGE_IDS, JSON.stringify(ids));
+        sharedSessionStorage.setItem(SESSION_KEY_MESSAGE_IDS, JSON.stringify(ids));
     } catch (ex) {
         // empty
     }
@@ -151,7 +148,7 @@ async function getUserInfoByToken(token) {
 }
 
 export async function updateUserInfo(info) {
-    sessionStorage.setItem(SESSION_KEY_USER_INFO, JSON.stringify(info));
+    sharedSessionStorage.setItem(SESSION_KEY_USER_INFO, JSON.stringify(info));
 }
 
 /**
@@ -185,7 +182,7 @@ export async function getUserInfo(ignoreCache = false) {
     }
 
     try {
-        sessionStorage.setItem(SESSION_KEY_USER_INFO, JSON.stringify(userInfo));
+        sharedSessionStorage.setItem(SESSION_KEY_USER_INFO, JSON.stringify(userInfo));
     } catch (ex) {
         // TODO logger
     }
@@ -308,7 +305,7 @@ export async function getMessageIds(ignoreCache = false) {
             throw new FetchParseBodyError(ex.message);
         }
         try {
-            sessionStorage.setItem(
+            sharedSessionStorage.setItem(
                 SESSION_KEY_MESSAGE_IDS,
                 JSON.stringify(result),
             );

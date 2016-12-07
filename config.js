@@ -50,7 +50,7 @@ if (isProduction && !JWT_SECRET) {
     throw new Error("environment variable `JWT_SECRET` is not set");
 }
 
-const PORT = env.PORT || 8080;
+const PORT = env.PORT || 8000;
 
 const HOST = env.HOST || "localhost";
 

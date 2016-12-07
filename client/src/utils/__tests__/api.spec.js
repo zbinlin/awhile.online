@@ -2,6 +2,9 @@
 
 /* eslint-env jest */
 
+jest.mock("shared-session-storage");
+
+import sharedSessionStorage from "shared-session-storage";
 import {
     updateUserInfo,
     getUserInfo,
@@ -32,11 +35,11 @@ class Storage extends Map {
     removeItem(key) {
         return this.delete(key);
     }
-    length() {
+    get length() {
         return this.size;
     }
     key(idx) {
-        return this.get([...this.keys()][idx]);
+        return [...this.keys()][idx];
     }
 }
 
@@ -51,23 +54,23 @@ beforeAll(() => {
     });
 });
 afterAll(() => {
-    delete window.sessionStorage;
+    sharedSessionStorage.clear();
     delete window.localStorage;
 });
 
 describe("test updateUserInfo api", () => {
     beforeEach(() => {
-        window.sessionStorage.clear();
+        sharedSessionStorage.clear();
     });
     afterEach(() => {
-        window.sessionStorage.clear();
+        sharedSessionStorage.clear();
     });
     it("should save to session storage", () => {
         const userInfo = {
             username: "admin",
         };
         updateUserInfo(userInfo);
-        expect(window.sessionStorage.getItem(
+        expect(sharedSessionStorage.getItem(
             SESSION_KEY_USER_INFO,
         )).toBe(JSON.stringify(userInfo));
     });
@@ -75,11 +78,11 @@ describe("test updateUserInfo api", () => {
 
 describe("test getUserInfo api", () => {
     beforeEach(() => {
-        window.sessionStorage.clear();
+        sharedSessionStorage.clear();
         window.localStorage.clear();
     });
     afterEach(() => {
-        window.sessionStorage.clear();
+        sharedSessionStorage.clear();
         window.localStorage.clear();
     });
     it("should returns null that the user is not login", async () => {
@@ -89,7 +92,7 @@ describe("test getUserInfo api", () => {
         const data = {
             username: "admin",
         };
-        window.sessionStorage.setItem(SESSION_KEY_USER_INFO, JSON.stringify(data));
+        sharedSessionStorage.setItem(SESSION_KEY_USER_INFO, JSON.stringify(data));
         expect(await getUserInfo()).toEqual(data);
     });
     describe("fetch remote data", () => {
@@ -107,7 +110,7 @@ describe("test getUserInfo api", () => {
         var result = {};
         beforeEach(() => {
             result.response = createResponse();
-            window.sessionStorage.setItem(KEY_USER_TOKEN, TOKEN);
+            sharedSessionStorage.setItem(KEY_USER_TOKEN, TOKEN);
             Object.defineProperty(window, "fetch", {
                 value: jest.fn(async (...args) => result.response),
                 writable: true,
@@ -115,7 +118,7 @@ describe("test getUserInfo api", () => {
             });
         });
         afterEach(() => {
-            window.sessionStorage.clear();
+            sharedSessionStorage.clear();
             delete window.fetch;
             delete result.response;
         });
@@ -126,12 +129,12 @@ describe("test getUserInfo api", () => {
             const expected = {
                 username: "admin",
             };
-            window.sessionStorage.setItem(SESSION_KEY_USER_INFO, JSON.stringify(data));
+            sharedSessionStorage.setItem(SESSION_KEY_USER_INFO, JSON.stringify(data));
             expect(await getUserInfo(true)).toEqual(expected);
-            expect(JSON.parse(window.sessionStorage.getItem(SESSION_KEY_USER_INFO))).toEqual(expected);
+            expect(JSON.parse(sharedSessionStorage.getItem(SESSION_KEY_USER_INFO))).toEqual(expected);
         });
         it("should returns null that the token is invalid", async () => {
-            window.sessionStorage.setItem(KEY_USER_TOKEN, "123");
+            sharedSessionStorage.setItem(KEY_USER_TOKEN, "123");
             expect(await getUserInfo()).toBe(null);
         });
         it("should returns null that the fetch api throws FetchError", async () => {
@@ -142,7 +145,7 @@ describe("test getUserInfo api", () => {
             expect(await getUserInfo()).toEqual({
                 username: "admin",
             });
-            expect(window.sessionStorage.getItem(SESSION_KEY_USER_INFO)).toBe(JSON.stringify({
+            expect(sharedSessionStorage.getItem(SESSION_KEY_USER_INFO)).toBe(JSON.stringify({
                 username: "admin",
             }));
         });
@@ -227,10 +230,10 @@ describe("test postMessage api", () => {
     });
     describe("post a message by logged in user", () => {
         beforeEach(() => {
-            window.sessionStorage.setItem(KEY_USER_TOKEN, TOKEN);
+            sharedSessionStorage.setItem(KEY_USER_TOKEN, TOKEN);
         });
         afterEach(() => {
-            window.sessionStorage.clear();
+            sharedSessionStorage.clear();
         });
         it("should post success", async () => {
             const content = "test message";
@@ -292,20 +295,20 @@ describe("test getMessageIds api", () => {
             writable: true,
             configurable: true,
         });
-        window.sessionStorage.setItem(KEY_USER_TOKEN, TOKEN);
+        sharedSessionStorage.setItem(KEY_USER_TOKEN, TOKEN);
     });
     afterEach(() => {
-        window.sessionStorage.clear();
+        sharedSessionStorage.clear();
         delete window.fetch;
         delete result.response;
     });
     it("should returns from cached", async () => {
         const data = ["123"];
-        window.sessionStorage.setItem(SESSION_KEY_MESSAGE_IDS, JSON.stringify(data));
+        sharedSessionStorage.setItem(SESSION_KEY_MESSAGE_IDS, JSON.stringify(data));
         expect(await getMessageIds()).toEqual(data);
     });
     it("should throws AuthError that the user is not login", async () => {
-        window.sessionStorage.clear();
+        sharedSessionStorage.clear();
         try {
             await getMessageIds();
         } catch (ex) {
@@ -315,7 +318,7 @@ describe("test getMessageIds api", () => {
         throw new Error("unexpect error");
     });
     it("should throws AuthError that the token is invalid", async () => {
-        window.sessionStorage.setItem(KEY_USER_TOKEN, "ooo");
+        sharedSessionStorage.setItem(KEY_USER_TOKEN, "ooo");
         try {
             await getMessageIds();
         } catch (ex) {
@@ -340,14 +343,14 @@ describe("test getMessageIds api", () => {
         expect(window.fetch.mock.calls.length).toBe(1);
         expect(window.fetch.mock.calls[0][1].headers["Authorization"]).toContain(TOKEN);
         expect(result).toEqual(defaultData);
-        expect(window.sessionStorage.getItem(SESSION_KEY_MESSAGE_IDS))
+        expect(sharedSessionStorage.getItem(SESSION_KEY_MESSAGE_IDS))
             .toBe(JSON.stringify(defaultData));
     });
     it("should ignore cached", async () => {
         const data = ["123"];
-        window.sessionStorage.setItem(SESSION_KEY_MESSAGE_IDS, JSON.stringify(data));
+        sharedSessionStorage.setItem(SESSION_KEY_MESSAGE_IDS, JSON.stringify(data));
         expect(await getMessageIds(true)).toEqual(defaultData);
-        expect(JSON.parse(window.sessionStorage.getItem(SESSION_KEY_MESSAGE_IDS))).toEqual(defaultData);
+        expect(JSON.parse(sharedSessionStorage.getItem(SESSION_KEY_MESSAGE_IDS))).toEqual(defaultData);
     });
     it("should should AuthError that the token has been expired(statusCode = 401)", async () => {
         result.response = createResponse(null, {
@@ -391,16 +394,16 @@ describe("test removeMessage api", () => {
             writable: true,
             configurable: true,
         });
-        window.sessionStorage.setItem(KEY_USER_TOKEN, TOKEN);
-        window.sessionStorage.setItem(SESSION_KEY_MESSAGE_IDS, "");
+        sharedSessionStorage.setItem(KEY_USER_TOKEN, TOKEN);
+        sharedSessionStorage.setItem(SESSION_KEY_MESSAGE_IDS, "");
     });
     afterEach(() => {
-        window.sessionStorage.clear();
+        sharedSessionStorage.clear();
         delete window.fetch;
         delete result.response;
     });
     it("should throws AuthError that the user is not login", async () => {
-        window.sessionStorage.clear();
+        sharedSessionStorage.clear();
         try {
             await removeMessage("1234567890");
         } catch (ex) {
@@ -529,7 +532,7 @@ describe("test login api", () => {
     }
     var result = {};
     beforeEach(() => {
-        window.sessionStorage.clear();
+        sharedSessionStorage.clear();
         window.localStorage.clear();
         result.response = createResponse();
         Object.defineProperty(window, "fetch", {
@@ -539,7 +542,7 @@ describe("test login api", () => {
         });
     });
     afterEach(() => {
-        window.sessionStorage.clear();
+        sharedSessionStorage.clear();
         window.localStorage.clear();
         delete window.fetch;
         delete result.response;
@@ -558,13 +561,13 @@ describe("test login api", () => {
     it("should login success without remember login status", async () => {
         const result = await login("admin", "123456");
         expect(result).toBe(TOKEN);
-        expect(window.sessionStorage.getItem(KEY_USER_TOKEN)).toBe(TOKEN);
+        expect(sharedSessionStorage.getItem(KEY_USER_TOKEN)).toBe(TOKEN);
         expect(window.localStorage.getItem(KEY_USER_TOKEN)).toBeUndefined();
     });
     it("should login success with remember login status", async () => {
         const result = await login("admin", "123456", true);
         expect(result).toBe(TOKEN);
-        expect(window.sessionStorage.getItem(KEY_USER_TOKEN)).toBeUndefined();
+        expect(sharedSessionStorage.getItem(KEY_USER_TOKEN)).toBeUndefined();
         expect(window.localStorage.getItem(KEY_USER_TOKEN)).toBe(TOKEN);
     });
 });
@@ -580,7 +583,7 @@ describe("test logout api", () => {
     }
     var result = {};
     beforeEach(() => {
-        window.sessionStorage.clear();
+        sharedSessionStorage.clear();
         window.localStorage.clear();
         result.response = createResponse();
         Object.defineProperty(window, "fetch", {
@@ -588,17 +591,17 @@ describe("test logout api", () => {
             writable: true,
             configurable: true,
         });
-        window.sessionStorage.setItem(KEY_USER_TOKEN, TOKEN);
+        sharedSessionStorage.setItem(KEY_USER_TOKEN, TOKEN);
         window.localStorage.setItem(KEY_USER_TOKEN, TOKEN);
     });
     afterEach(() => {
-        window.sessionStorage.clear();
+        sharedSessionStorage.clear();
         window.localStorage.clear();
         delete window.fetch;
         delete result.response;
     });
     it("should throws AuthError that the user is not login", async () => {
-        window.sessionStorage.clear();
+        sharedSessionStorage.clear();
         window.localStorage.clear();
         try {
             await logout();
