@@ -13,7 +13,7 @@ const Messages = ({ value: messageIds, reload, onRemoveMessage }) => {
         } else if (ids.error) {
             return <div className="load-failure">加载失败！ <a onClick={reload}>重试</a></div>;
         } else if (!ids.content.length) {
-            return <div className="empty"></div>;
+            return <div className="empty">无内容</div>;
         }
         const messages = ids.content.map((obj, idx) => {
             const { id, deleting, error } = obj;

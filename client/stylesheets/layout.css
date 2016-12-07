@@ -1026,6 +1026,12 @@ body.overlay {
     }
 }
 
+.userinfo .messages .empty {
+    text-align: center;
+    margin-top: 1em;
+    color: gray;
+    font-size: 150%;
+}
 
 .userinfo .messages .load-failure {
     text-align: center;
