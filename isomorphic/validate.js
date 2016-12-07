@@ -18,12 +18,12 @@ function checkLength(str, min, max) {
     }
     return validity;
 }
-function checkEmail(email, max) {
+function checkEmail(email) {
     const validity = {
         valid: true,
     };
     // NOTE: email is optional
-    if (email == null) {
+    if (email == null || email == "") {
         return validity;
     }
     if (!validator.isEmail(email)) {
@@ -35,9 +35,9 @@ function checkEmail(email, max) {
 
 export function validateRegister(params) {
     const validities = {};
-    validities.username = checkLength(params.username, 2, 32);
+    validities.username = checkLength(params.username, 3, 32);
     validities.password = checkLength(params.password, 6, 128);
-    validities.email = checkEmail(params.email, 128);
+    validities.email = checkEmail(params.email);
     if (validities.username.valid &&
         validities.password.valid &&
         validities.email.valid) {

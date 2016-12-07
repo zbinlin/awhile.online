@@ -13,6 +13,8 @@ const ERROR_MESSAGES = {
         tooLong: "用户名长度不能超过 32 个字符",
     },
     password: {
+        tooShort: "密码长度至少 6 个字符",
+        tooLong: "密码长度太长了",
         valueMismatch: "密码不能为空",
     },
     email: {
@@ -36,7 +38,7 @@ class RegisterForm extends Component {
     }
     getValidityMessage(validityState, errorMessages) {
         if (validityState.valid) {
-            return;
+            return "";
         }
         if (validityState.customError) {
             return validityState.customErrorMessage;
@@ -46,9 +48,7 @@ class RegisterForm extends Component {
             if (key === "valid" || key === "customError" || key === "customErrorMessage") {
                 continue;
             }
-            if (validityState[key]) {
-                messages.push(messages[key]);
-            }
+            messages.push(errorMessages[key]);
         }
         return messages.join("; ");
     }
@@ -57,6 +57,7 @@ class RegisterForm extends Component {
         state.usernameValidityMessage = this.getValidityMessage(username, ERROR_MESSAGES["username"]);
         state.passwordValidityMessage = this.getValidityMessage(password, ERROR_MESSAGES["password"]);
         state.emailValidityMessage = this.getValidityMessage(email, ERROR_MESSAGES["email"]);
+        return state;
     }
     updateStateFrom(props) {
         const nextState = {};
