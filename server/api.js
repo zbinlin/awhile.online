@@ -327,7 +327,7 @@ apiRouter.post("/messages", authorize(true), function* () {
         expiresIn = isNaN(ttl) ? GUEST_TTL_RANGE.min
             : Math.max(GUEST_TTL_RANGE.min, Math.min(parseInt(ttl, 10), GUEST_TTL_RANGE.max));
     } else {
-        let start = moment(_startTime);
+        let start = moment.unix(_startTime);
         if (!start.isValid()) {
             start = moment();
         }
