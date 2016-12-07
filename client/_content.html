@@ -21,7 +21,7 @@
                         <li>昵称：无名</li>
                         <li>邮箱：无</li>
                     </ul>
-                    <div class="extra">
+                    <!-- <div class="extra">
                         <ul class="btns">
                             <li><a class="small-btn">修改密码</a></li>
                             <li><a class="small-btn">修改昵称</a></li>
@@ -70,10 +70,13 @@
                                 <button class="btn btn-secondary">取消</button>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
                 <div class="messages">
                     <div class="label">已发布的消息：</div>
+                    <div class="loading"></div>
+                    <div class="empty"></div>
+                    <div class="load-failure">加载失败！ <a>重试</a></div>
                     <ul class="links">
                         <li><a>abcdefghijk</a><a class="delete-btn"></a></li>
                         <li><a>abcdefghijk</a><a class="delete-btn"></a></li>
@@ -81,8 +84,8 @@
                         <li><a>abcdefghijk</a><a class="delete-btn"></a></li>
                         <li><a>abcdefghijk</a><a class="delete-btn"></a></li>
                         <li><a>abcdefghijk</a><a class="delete-btn"></a></li>
-                        <li><a>abcdefghijk</a><a class="delete-btn"></a></li>
-                        <li><a>abcdefghijk</a><a class="delete-btn"></a></li>
+                        <li><a>abcdefghijk</a><a class="delete-btn delete-failure"></a></li>
+                        <li><a>abcdefghijk</a><a class="delete-btn deleting"></a></li>
                     </ul>
                 </div>
             </div>
@@ -101,12 +104,9 @@
                     <span>消息</span>
                 </div>
                 <div class="view-message-container">
-                    <div class="message-content">Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-        The above copyright notice and this per中文mission notice shall be included in all copies or substantial portions of the Software.
-                    </div>
-                    <div class="message-content-warning">
-                        <p><i class="fa-warning">&#61553;</i>该消息内容由用户产生，如果内容涉及儿童色情、侵权、诈骗等，可以<a href="mailto:awhile.online@yandex.com?subject=举报&body="><b>发送邮件</b></a>举报！</p>
+                    <div class="message-content-not-found">
+                        <span class="num">404</span>
+                        <span class="desc">Not Found</span>
                     </div>
                 </div>
             </div>
