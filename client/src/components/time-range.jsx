@@ -155,7 +155,7 @@ class Track extends Component {
         callback();
     }
     render() {
-        const { start, end, value } = this.props;
+        const { start, end, value, fixedStart } = this.props;
         const { activeCls } = this.state;
         const length = end - start;
         const x = (value.startTime - start) / length * 100;
@@ -164,14 +164,15 @@ class Track extends Component {
             width: `${w.toFixed(6)}%`,
             left: `${x.toFixed(6)}%`,
         };
+        const cls = `${activeCls} ${fixedStart ? "fixed-start" : ""}`;
         if (isSupportTouch) {
             return (
-                <span className={`track ${activeCls}`} style={styl}
+                <span className={`track ${cls}`} style={styl}
                       onTouchStart={this.handleMouseDown}></span>
             );
         } else {
             return (
-                <span className={`track ${activeCls}`} style={styl}
+                <span className={`track ${cls}`} style={styl}
                       onMouseDown={this.handleMouseDown}></span>
             );
         }
@@ -236,6 +237,7 @@ export default class TimeRange extends Component {
             <div className="time-range-container">
                 <div className="range-ipt">
                     <input type="text" value={startTimeString}
+                           disabled={fixedStart}
                            onChange={this.handleStartTimeChange} />-<input
                     type="text" value={endTimeString} onChange={this.handleEndTimeChange} />
                 </div>

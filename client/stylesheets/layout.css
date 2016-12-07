@@ -449,6 +449,12 @@ a:hover {
 .post-message-container .metadata-container .range .track.whole {
     background-color: red;
 }
+.post-message-container .metadata-container .range .track.fixed-start {
+    cursor: default;
+}
+.post-message-container .metadata-container .range .track.fixed-start::before {
+    visibility: hidden;
+}
 .post-message-container .metadata-container .range .track.start::before,
 .post-message-container .metadata-container .range .track.end::after {
     background-color: red;
@@ -694,8 +700,8 @@ a:hover {
     white-space: pre-wrap;
     font-size: 14px;
     line-height: 1.618em;
-    padding: 0.5em;
-    margin: -0.25em;
+    padding: 0.5em 0.75em;
+    margin: -0.50em;
     border: 1px solid transparent;
     box-shadow: 1px 1px 2px #7E8AA2;
     color: black;

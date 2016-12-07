@@ -113,7 +113,7 @@ export default class User extends Component {
         return (
             <div className="userinfo">
                 <div className="mid welcome">
-                    欢迎，<a href="javascript:" onClick={this.showInfo} className="detail-btn">Admin</a>
+                    欢迎，<a href="javascript:" onClick={this.showInfo} className="detail-btn">{baseInfo.nickname}</a>
                     <a href="javascript:" onClick={this.logout} className="logout-btn">[退出]</a>
                 </div>
                 {detail}
