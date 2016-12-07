@@ -59,21 +59,14 @@ class PostedSuccess extends Component {
 class PostMessage extends Component {
     constructor(...args) {
         super(...args);
-        const now = Math.floor(Date.now() / 1000);
-        const startTime = now;
-        const endTime = now + (this.props.isLoggedIn
-            ? moment.duration(1, "months") : moment.duration(5, "days")
-        ).asSeconds();
+        const { startTime, endTime, range } = this.getTimeRanges();
         this.state = {
             posting: false,
             errorMessage: "",
             characterCount: MAX_MESSAGE_CONTENT_LENGTH,
             startTime,
             endTime,
-            range: {
-                startTime,
-                endTime: startTime + moment.duration(1, "hours").asSeconds(),
-            },
+            range,
         };
         setTimeout(() => {
             this.updateStateFrom(this.props);
@@ -88,6 +81,21 @@ class PostMessage extends Component {
         if (!isObjectEqual(nextProps, this.props)) {
             this.updateStateFrom(nextProps);
         }
+    }
+    getTimeRanges() {
+        const now = Math.floor(Date.now() / 1000);
+        const startTime = now;
+        const endTime = now + (this.props.isLoggedIn
+            ? moment.duration(1, "months") : moment.duration(5, "days")
+        ).asSeconds();
+        return {
+            startTime,
+            endTime,
+            range: {
+                startTime,
+                endTime: startTime + moment.duration(1, "hours").asSeconds(),
+            },
+        };
     }
     updateStateFrom(props) {
         this.setState({

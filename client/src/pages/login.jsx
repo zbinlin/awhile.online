@@ -51,9 +51,7 @@ const LoginSuccessDialog = () => {
     return (
         <div className="login-success-dialog">
             <h2>登录成功</h2>
-            <div className="btns">
-                <a class="btn btn-block btn-primary" href="/publish.html">发布消息</a>
-            </div>
+            <a class="btn btn-block btn-primary" href="/publish.html">发布消息</a>
         </div>
     );
 };

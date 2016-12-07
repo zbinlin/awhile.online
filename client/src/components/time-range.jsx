@@ -22,6 +22,10 @@ class Track extends Component {
     constructor(...args) {
         super(...args);
 
+        this.state = {
+            activeCls: "",
+        };
+
         this.handleMouseDown = this.handleMouseDown.bind(this);
         this.handleMouseMove = this.handleMouseMove.bind(this);
         this.handleMouseUp = this.handleMouseUp.bind(this);
@@ -40,15 +44,15 @@ class Track extends Component {
         const { left, width } = target.getBoundingClientRect();
         this.containerWidth  = target.parentNode.getBoundingClientRect().width;
         const offsetX = this.x - left;
-        if (offsetX <= 6) {
-            this.movingParts = "start";
-            this.setState({
-                activeCls: "start",
-            });
-        } else if (offsetX >= width - 6) {
+        if (offsetX >= width - 6) {
             this.movingParts = "end";
             this.setState({
                 activeCls: "end",
+            });
+        } else if (offsetX <= 6) {
+            this.movingParts = "start";
+            this.setState({
+                activeCls: "start",
             });
         } else {
             this.movingParts = "whole";
@@ -104,7 +108,7 @@ class Track extends Component {
             ratio = -1;
         }
         let startTime, endTime;
-        const safeWidth = 16 / this.containerWidth * length;
+        const safeWidth = 0 / this.containerWidth * length;
         const offsetTime = ratio * length;
         switch (this.movingParts) {
             case "start":

@@ -234,6 +234,7 @@ a:hover {
 
 .btn-block {
     display: block;
+    box-sizing: border-box;
     width: 100%;
 }
 
@@ -764,10 +765,33 @@ a:hover {
     }
 }
 
+.view-message-container .message-content-not-found {
+    font-family: "Kalam";
+    font-size: 64px;
+}
+.view-message-container .message-content-not-found span {
+    display: block;
+    text-align: center;
+}
+.view-message-container .message-content-not-found .num {
+    font-size: 100%;
+}
 
+@media (min-width: 576px) {
+    .view-message-container .message-content-not-found {
+        font-size: 92px;
+    }
+    .view-message-container .message-content-not-found .num {
+        font-size: 150%;
+    }
+}
+
+
+.login-success-dialog,
 .register-success-dialog {
     text-align: center;
 }
+.login-success-dialog > h2,
 .register-success-dialog > h2 {
     color: #55B055;
     font-size: 32px;
@@ -919,13 +943,18 @@ body.overlay {
 }
 .userinfo .messages .links {
     list-style: none;
-    width: 21em;
-    margin: 0 auto;
+    margin: 0;
     padding: 0;
-    line-height: 1.618;
+    margin-top: 0.5em;
 }
 .userinfo .messages .links li {
     position: relative;
+    height: 2.4em;
+    line-height: 2.4em;
+    padding: 0 0.5em;
+}
+.userinfo .messages .links li:hover {
+    background: #efefef;
 }
 
 .userinfo .messages .links li:hover,
@@ -937,7 +966,7 @@ body.overlay {
 }
 .userinfo .messages .links .delete-btn {
     position: absolute;
-    right: 0;
+    right: 0.5em;
     top: 0;
     bottom: 0;
     margin: auto;
@@ -948,8 +977,56 @@ body.overlay {
     font-family: FontAwesome;
     display: none;
 }
+.userinfo .messages .links .delete-btn:active::before {
+    color: #999;
+}
 .userinfo .messages .links li:hover .delete-btn::before {
     display: block;
+}
+.userinfo .messages .links .delete-btn.deleting::before {
+    display: block;
+    color: gray;
+    cursor: not-allowed;
+}
+.userinfo .messages .links .delete-btn.delete-failure::before {
+    color: #E33830;
+}
+
+.userinfo .messages .loading {
+    position: relative;
+    height: 1.618em;
+    padding: 1.618em 0;
+}
+.userinfo .messages .loading::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: auto;
+    width: 1.618em;
+    height: 1.618em;
+    border-left: 1px solid green;
+    border-top: 1px solid green;
+    border-radius: 50%;
+    animation: loading linear 0.5s infinite;
+}
+
+@keyframes loading {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+.userinfo .messages .load-failure {
+    text-align: center;
+    color: #E33830;
+}
+.userinfo .messages .load-failure a:hover {
+    text-decoration: underline;
 }
 
 

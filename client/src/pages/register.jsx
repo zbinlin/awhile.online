@@ -152,7 +152,7 @@ class RegisterForm extends Component {
 const RegisterSuccess = () => (
     <div className="register-success-dialog">
         <h2>注册成功！</h2>
-        <a className="btn btn-primary" href="/login.html">登录</a>
+        <a className="btn btn-block btn-primary" href="/login.html">登录</a>
     </div>
 );
 
