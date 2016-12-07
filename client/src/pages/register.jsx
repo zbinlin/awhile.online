@@ -108,7 +108,7 @@ class RegisterForm extends Component {
             errorMessage,
         } = this.state;
         return (
-            <form onSubmit={this.handleSubmit}>
+            <form onSubmit={this.handleSubmit} name="register-form">
                 <div className="form-ctl">
                     <label className="for-text" for="ipt-register-username">用户名</label>
                     <input id="ipt-register-username" type="text"
@@ -140,7 +140,7 @@ class RegisterForm extends Component {
                         </div>
                     )}
                 </div>
-                { errorMessage && <div className="form-tips">{errorMessage}</div> }
+                { errorMessage && <div className="form-ctl"><div class="tips invalid">{errorMessage}</div></div> }
                 <div className="form-ctl">
                     <button disabled={submitting} type="submit" className="btn btn-primary btn-block">注册</button>
                 </div>

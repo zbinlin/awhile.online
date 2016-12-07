@@ -9,9 +9,16 @@ import message from "./message";
 import register from "./register";
 import userInfo from "./user-info";
 
-export default combineReducers({
+function debug(fn) {
+    return function (...args) {
+        console.table(args);
+        return fn(...args);
+    };
+}
+
+export default debug(combineReducers({
     auth,
     message,
     register,
     userInfo,
-});
+}));

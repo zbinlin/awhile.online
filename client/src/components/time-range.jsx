@@ -110,7 +110,7 @@ class Track extends Component {
             case "start":
                 startTime = Math.max(start, value.startTime + offsetTime);
                 if (value.endTime - startTime < safeWidth) {
-                    startTime = value.endTime - safeWidth;
+                    startTime = Math.max(start, value.endTime - safeWidth);
                 }
                 this.props.onChange({
                     startTime,
@@ -120,7 +120,7 @@ class Track extends Component {
             case "end":
                 endTime = Math.min(value.endTime + offsetTime, end);
                 if (endTime - value.startTime < safeWidth) {
-                    endTime = value.startTime + safeWidth;
+                    endTime = Math.min(value.startTime + safeWidth, end);
                 }
                 this.props.onChange({
                     startTime: value.startTime,

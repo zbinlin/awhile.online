@@ -25,7 +25,7 @@ const Messages = ({ value: messageIds, reload, onRemoveMessage }) => {
             }
             return (
                 <li key={idx}>
-                    <a href={`/m/${obj.id}`} target="_blank">{id}</a>
+                    <a className="link" href={`/m/${obj.id}`} target="_blank">{id}</a>
                     <a onClick={onRemoveMessage.bind(null, id)}
                        className={`delete-btn ${cls}`} aria-label="delete button"
                        title={error ? error.message : "Delete this message"}></a>
@@ -79,12 +79,7 @@ export default class User extends Component {
     logout() {
         this.props.dispatch(actions.logout());
     }
-    handleRemoveMessage(idx) {
-        const { messageIds } = this.props;
-        if (!messageIds || messageIds[idx] == null) {
-            return;
-        }
-        const id = messageIds[idx];
+    handleRemoveMessage(id) {
         this.props.dispatch(actions.removeMessage(id));
     }
     render() {

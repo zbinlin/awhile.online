@@ -114,7 +114,7 @@ export function register(username, password, email) {
             return await dispatch({
                 type: REGISTER_USER_FAILURE,
                 payload: {
-                    errno: ex.message,
+                    errno: ex.errno,
                     message: ex.message,
                     detail: ex.detail,
                 },
@@ -138,7 +138,7 @@ export function login(username, password, isRemember = false) {
             return await dispatch({
                 type: LOGIN_FAILURE,
                 payload: {
-                    errno: ex.message,
+                    errno: ex.errno,
                     message: ex.message,
                 },
                 error: true,

@@ -4,6 +4,7 @@ import { h, render, Component } from "preact";
 import Router from "preact-router";
 import store from "./store";
 import "babel-polyfill";
+import * as actions from "./actions";
 
 import {
     Home,
@@ -25,6 +26,11 @@ class App extends Component {
         store.subscribe(() => {
             this.setState(Object.assign({}, store.getState()));
         });
+    }
+    componentDidMount() {
+        this.props.store.dispatch(
+            actions.getUserInfo(),
+        );
     }
     render() {
         const { messageContent } = this.props;

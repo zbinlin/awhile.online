@@ -3,8 +3,7 @@
 import moment from "moment";
 import { h, Component } from "preact";
 
-import QRcode from "qrcode.react";
-import { User, Jumbotron, Nav, TimeRange } from "../components";
+import { User, Jumbotron, Nav, TimeRange, QRCode } from "../components";
 import { isObjectEqual } from "../utils";
 import { MAX_MESSAGE_CONTENT_LENGTH } from "../constants";
 import * as actions from "../actions";
@@ -20,25 +19,24 @@ class PostedSuccess extends Component {
     doCopy() {
         this.setState({
             coping: true,
-        }, () => {
-            if ("clipboardData" in window) {
-                window.clipboardData.setData("Text", this.props.link);
-                this.setState({
-                    coping: false,
-                });
-                return;
-            }
-            const handleEvent = evt => {
-                document.removeEventListener("copy", handleEvent, true);
-                evt.preventDefault();
-                evt.clipboardData.setData("text/plain", this.props.link);
-                this.setState({
-                    coping: false,
-                });
-            };
-            document.addEventListener("copy", handleEvent, true);
-            document.execCommand("copy");
         });
+        if ("clipboardData" in window) {
+            window.clipboardData.setData("Text", this.props.link);
+            this.setState({
+                coping: false,
+            });
+            return;
+        }
+        const handleEvent = evt => {
+            document.removeEventListener("copy", handleEvent, true);
+            evt.preventDefault();
+            evt.clipboardData.setData("text/plain", this.props.link);
+            this.setState({
+                coping: false,
+            });
+        };
+        document.addEventListener("copy", handleEvent, true);
+        document.execCommand("copy");
     }
     render() {
         const { link, coping } = this.props;
@@ -51,7 +49,7 @@ class PostedSuccess extends Component {
                        onClick={this.doCopy}>复制</a>
                 </div>
                 <div className="qrcode">
-                    <QRcode value={link} size={150} />
+                    <QRCode value={link} size={150} />
                 </div>
             </div>
         );
@@ -74,7 +72,7 @@ class PostMessage extends Component {
             endTime,
             range: {
                 startTime,
-                endTime: moment.duration(1, "hours"),
+                endTime: startTime + moment.duration(1, "hours").asSeconds(),
             },
         };
         setTimeout(() => {
@@ -82,8 +80,8 @@ class PostMessage extends Component {
         });
         this.handleSubmit = this.handleSubmit.bind(this);
         this.calcRemainingCharacterCount = this.calcRemainingCharacterCount.bind(this);
-        this.handleFocus = this.handleFocus(this);
-        this.handleBlur = this.handleBlur(this);
+        this.handleFocus = this.handleFocus.bind(this);
+        this.handleBlur = this.handleBlur.bind(this);
         this.handleTimeRangeChange = this.handleTimeRangeChange.bind(this);
     }
     componentWillReceiveProps(nextProps) {
@@ -139,7 +137,7 @@ class PostMessage extends Component {
         const submitCls = posting ? "submiting" : "";
         return (
             <div className="post-message-container">
-                <form onSubmit={this.handleSubmit}>
+                <form onSubmit={this.handleSubmit} name="publish-form">
                     <div className="content">
                         <textarea ref={ el => (this._textAreaEl = el) }
                                   onFocus={this.handleFocus}

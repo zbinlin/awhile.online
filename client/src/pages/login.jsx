@@ -10,12 +10,17 @@ const LoginForm = ({ errorMessage, processing, onSubmit }) => {
     if (processing) {
         submitCls = "processing";
     } else if (errorMessage) {
+        const content = Array.isArray(errorMessage) ? (
+            errorMessage.map((msg, idx) => (
+                <p key={idx} className="tips invalid">{msg}</p>
+            ))
+        ) : (<p class="tips invalid">{errorMessage}</p>);
         tips = (
-            <div className="form-tips">{errorMessage}</div>
+            <div className="form-ctl">{content}</div>
         );
     }
     return (
-        <form onSubmit={onSubmit}>
+        <form onSubmit={onSubmit} name="login-form">
             <div className="form-ctl">
                 <label className="for-text">用户名</label>
                 <input type="text" name="username" required />
@@ -62,7 +67,7 @@ export default class Login extends Component {
             errorMessage: "",
             processing: false,
         };
-        setTimeout(this.updateState.bind(this, this.props));
+        setTimeout(this.updateState.bind(this, this.props.auth));
     }
     updateState(auth) {
         if (auth.processing) {
@@ -76,11 +81,13 @@ export default class Login extends Component {
                 processing: false,
                 errorMessage: "",
                 loggedIn: true,
+            }, () => {
+                this.props.dispatch(actions.getUserInfo());
             });
-        } else if (auth.errno) {
+        } else if (auth.error) {
             this.setState({
                 processing: false,
-                errorMessage: auth.errno.message,
+                errorMessage: auth.error.message,
                 loggedIn: false,
             });
         }
@@ -110,7 +117,7 @@ export default class Login extends Component {
         }
         if (errorMessages.length) {
             this.setState({
-                errorMessage: errorMessages.map((msg, idx) => <p key={idx}>{msg}</p>),
+                errorMessage: errorMessages,
             });
         } else {
             this.props.dispatch(actions.login(username, password, isRemember));

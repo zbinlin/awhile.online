@@ -58,6 +58,7 @@ function messageIds(state = {}, action) {
                 if (idx === -1) return state;
                 const ary = state.content.slice();
                 ary.splice(idx, 1);
+                console.log(idx, action.payload, state.content, ary);
                 return Object.assign({}, state, {
                     content: ary,
                 });

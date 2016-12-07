@@ -698,6 +698,7 @@ a:hover {
     border: 1px solid transparent;
     box-shadow: 1px 1px 2px #7E8AA2;
     color: black;
+    min-height: 9.708em;
 }
 @media (min-width: 576px) {
     .view-message-container {
@@ -791,6 +792,9 @@ body.overlay {
 .userinfo .welcome a {
     color: inherit;
 }
+.userinfo .welcome a:hover {
+    text-decoration: underline;
+}
 .userinfo .welcome .logout-btn {
     margin-left: 0.5em;
 }
@@ -826,7 +830,7 @@ body.overlay {
 .userinfo .detail .basic {
     list-style: none;
     margin: 0;
-    padding-left: 0;
+    padding: 1em 0;
     line-height: 1.618;
 }
 .userinfo .detail .extra {
@@ -926,8 +930,10 @@ body.overlay {
 
 .userinfo .messages .links li:hover,
 .userinfo .messages .links .link:hover {
-    text-decoration: underline;
     color: black;
+}
+.userinfo .messages .links .link:hover {
+    text-decoration: underline;
 }
 .userinfo .messages .links .delete-btn {
     position: absolute;
