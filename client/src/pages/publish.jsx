@@ -198,7 +198,7 @@ class PostMessage extends Component {
     }
     render() {
         const { posting, errorMessage, characterCount, startTime, endTime, range } = this.state;
-        const submitCls = posting ? "submiting" : "";
+        const submitCls = posting ? "submiting btn--pending" : "";
         return (
             <div className="post-message-container">
                 <form onSubmit={this.handleSubmit} name="publish-form">

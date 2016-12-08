@@ -8,7 +8,7 @@ import { User, Jumbotron, Nav } from "../components";
 const LoginForm = ({ errorMessage, processing, onSubmit }) => {
     let tips, submitCls = "";
     if (processing) {
-        submitCls = "processing";
+        submitCls = "processing btn--pending";
     } else if (errorMessage) {
         const content = Array.isArray(errorMessage) ? (
             errorMessage.map((msg, idx) => (

@@ -135,7 +135,8 @@ class RegisterForm extends Component {
                 </div>
                 { errorMessage && <div className="form-ctl"><div class="tips invalid">{errorMessage}</div></div> }
                 <div className="form-ctl">
-                    <button disabled={submitting} type="submit" className="btn btn-primary btn-block">注册</button>
+                    <button disabled={submitting} type="submit"
+                            className={`btn btn-primary btn-block ${submitting ? "btn--pending" : ""}`}>注册</button>
                 </div>
             </form>
         );

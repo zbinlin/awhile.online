@@ -238,6 +238,26 @@ a:hover {
     width: 100%;
 }
 
+.btn.btn--pending {
+    position: relative;
+    opacity: 0.618;
+    cursor: not-allowed;
+}
+.btn.btn--pending::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin: auto 0 auto 0.5em;
+    width: 1em;
+    height: 1em;
+    box-sizing: border-box;
+    border-radius: 50%;
+    border-top: 1px solid currentColor;
+    border-left: 1px solid currentColor;
+    animation: loading linear 0.5s infinite;
+}
+
 
 .jumbotron {
     background: #263248;
