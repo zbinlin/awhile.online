@@ -4,10 +4,11 @@ import {
     GET_USER_INFO_REQUEST,   GET_USER_INFO_SUCCESS,
     POST_MESSAGE_REQUEST,    POST_MESSAGE_SUCCESS,    POST_MESSAGE_FAILURE,
     GET_MESSAGE_IDS_REQUEST, GET_MESSAGE_IDS_SUCCESS, GET_MESSAGE_IDS_FAILURE,
-    REMOVE_MESSAGE_REQUEST,  REMOVE_MESSAGE_SUCCESS,  REMOVE_MESSAGE_FAILURE,
+    REMOVE_MESSAGE_REQUEST,/*REMOVE_MESSAGE_SUCCESS,*/REMOVE_MESSAGE_FAILURE,
     REGISTER_USER_REQUEST,   REGISTER_USER_SUCCESS,   REGISTER_USER_FAILURE,
     LOGIN_REQUEST,           LOGIN_SUCCESS,           LOGIN_FAILURE,
     LOGOUT_REQUEST,          LOGOUT_SUCCESS,
+    RESET_MESSAGE_IDS,
 } from "../constants";
 
 import * as utils from "../utils";
@@ -32,6 +33,9 @@ export function postMessage(content, startTime, ttl) {
         });
         try {
             const link = await utils.postMessage(content, startTime, ttl);
+            await dispatch({
+                type: RESET_MESSAGE_IDS,
+            });
             return await dispatch({
                 type: POST_MESSAGE_SUCCESS,
                 payload: link,
@@ -82,10 +86,8 @@ export function removeMessage(id) {
         });
         try {
             await utils.removeMessage(id);
-            return await dispatch({
-                type: REMOVE_MESSAGE_SUCCESS,
-                payload: id,
-            });
+            console.log(id);
+            return await dispatch(getMessageIds(true));
         } catch (ex) {
             return await dispatch({
                 type: REMOVE_MESSAGE_FAILURE,

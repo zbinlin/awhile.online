@@ -14,6 +14,8 @@ import {
 
     LOGOUT_REQUEST,
     LOGOUT_SUCCESS,
+
+    RESET_MESSAGE_IDS,
 } from "../constants";
 
 
@@ -52,16 +54,6 @@ function messageIds(state = {}, action) {
                     }
                 }),
             });
-        case REMOVE_MESSAGE_SUCCESS:
-            return (() => {
-                const idx = state.content.findIndex(obj => obj.id == action.payload);
-                if (idx === -1) return state;
-                const ary = state.content.slice();
-                ary.splice(idx, 1);
-                return Object.assign({}, state, {
-                    content: ary,
-                });
-            })();
         case REMOVE_MESSAGE_FAILURE:
             return Object.assign({}, state, {
                 content: state.content.map(val => {
@@ -89,6 +81,11 @@ export default function userInfo(state = {}, action) {
         case GET_USER_INFO_SUCCESS:
             return Object.assign({}, state, {
                 baseInfo: action.payload,
+            });
+
+        case RESET_MESSAGE_IDS:
+            return Object.assign({}, state, {
+                messageIds: null,
             });
 
         case GET_MESSAGE_IDS_REQUEST:

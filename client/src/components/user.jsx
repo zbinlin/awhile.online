@@ -3,7 +3,7 @@
 import { h, Component } from "preact";
 import * as actions from "../actions";
 
-const Messages = ({ value: messageIds, reload, onRemoveMessage }) => {
+const Messages = ({ value: messageIds, load, onRemoveMessage }) => {
     if (!messageIds) {
         return null;
     }
@@ -11,7 +11,7 @@ const Messages = ({ value: messageIds, reload, onRemoveMessage }) => {
         if (ids.loading) {
             return <div className="loading"></div>;
         } else if (ids.error) {
-            return <div className="load-failure">加载失败！ <a onClick={reload}>重试</a></div>;
+            return <div className="load-failure">加载失败！ <a onClick={load} href="javascript:">重试</a></div>;
         } else if (!ids.content.length) {
             return <div className="empty">无内容</div>;
         }

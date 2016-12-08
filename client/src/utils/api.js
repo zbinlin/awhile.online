@@ -40,6 +40,9 @@ function clearToekn() {
 }
 function clearUserInfo() {
     sharedSessionStorage.removeItem(SESSION_KEY_USER_INFO);
+}
+
+function clearMessageIds() {
     sharedSessionStorage.removeItem(SESSION_KEY_MESSAGE_IDS);
 }
 
@@ -235,6 +238,9 @@ export async function postMessage(content, startTime, ttl) {
     if (response.ok) {
         try {
             const { id } = await response.json();
+            if (token) {
+                clearMessageIds();
+            }
             return `https://awhile.online/${token ? "m" : "anonymous"}/${id}`;
         } catch (ex) {
             throw new FetchParseBodyError(ex.message);
@@ -361,7 +367,7 @@ export async function removeMessage(id) {
             const idx = ids.indexOf(id);
             if (idx > -1) {
                 ids.splice(idx, 1);
-                setMessageIdsToLocal(idx);
+                setMessageIdsToLocal(ids);
             }
         }
         return id;
@@ -477,6 +483,7 @@ export async function logout() {
     try {
         clearToekn();
         clearUserInfo();
+        clearMessageIds();
     } catch (ex) {
         // empty
     }

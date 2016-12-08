@@ -14,6 +14,9 @@ export const GET_MESSAGE_IDS_REQUEST = "get message ids request";
 export const GET_MESSAGE_IDS_SUCCESS = "get message ids success";
 export const GET_MESSAGE_IDS_FAILURE = "get message ids failure";
 
+// reset message ids state
+export const RESET_MESSAGE_IDS = "reset get message ids state";
+
 // remove message
 export const REMOVE_MESSAGE_REQUEST = "remove message request";
 export const REMOVE_MESSAGE_SUCCESS = "remove message success";
@@ -32,3 +35,4 @@ export const LOGIN_FAILURE = "login failure";
 // logout
 export const LOGOUT_REQUEST = "logout request";
 export const LOGOUT_SUCCESS = "logout success";
+
