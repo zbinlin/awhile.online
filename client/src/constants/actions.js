@@ -9,6 +9,9 @@ export const POST_MESSAGE_REQUEST = "post message request";
 export const POST_MESSAGE_SUCCESS = "post message success";
 export const POST_MESSAGE_FAILURE = "post message failure";
 
+// reset post message state
+export const RESET_PUBLISH_STATE = "reset get message ids state";
+
 // get message ids
 export const GET_MESSAGE_IDS_REQUEST = "get message ids request";
 export const GET_MESSAGE_IDS_SUCCESS = "get message ids success";

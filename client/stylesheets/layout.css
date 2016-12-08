@@ -289,16 +289,16 @@ a:hover {
     left: 0;
     right: 0;
     bottom: 0.5ex;
-    box-shadow: 0 0 3px #FF9800;
     position: absolute;
-    animation: dot 3s linear infinite;
 }
 @keyframes dot {
-    0% {
-        box-shadow: 0 0 3px #FF9800;
+    from {
+        transform: scale(1);
+        opacity: 1;
     }
-    100% {
-        box-shadow: 0 0 12px rgba(255, 152, 0, 0.3);
+    to {
+        transform: scale(1.618);
+        opacity: 0;
     }
 }
 
@@ -693,7 +693,7 @@ a:hover {
 
 .view-message-container {
     width: 83.33333%;
-    margin: 0 auto;
+    margin: 0 auto 3em;
     position: relative;
 }
 .view-message-container .message-content {
@@ -844,6 +844,7 @@ body.overlay {
     top: 0;
     background: white;
     bottom: 0;
+    width: 90%;
     max-width: 100%;
     z-index: 2147483647;
     box-shadow: -2px 0 3px #7E8AA2;

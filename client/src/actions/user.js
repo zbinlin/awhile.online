@@ -9,6 +9,7 @@ import {
     LOGIN_REQUEST,           LOGIN_SUCCESS,           LOGIN_FAILURE,
     LOGOUT_REQUEST,          LOGOUT_SUCCESS,
     RESET_MESSAGE_IDS,
+    RESET_PUBLISH_STATE
 } from "../constants";
 
 import * as utils from "../utils";
@@ -51,6 +52,12 @@ export function postMessage(content, startTime, ttl) {
                 error: true,
             });
         }
+    };
+}
+
+export function resetPublishState() {
+    return {
+        type: RESET_PUBLISH_STATE,
     };
 }
 

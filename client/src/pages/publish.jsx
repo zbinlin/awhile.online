@@ -50,13 +50,16 @@ class PostedSuccess extends Component {
         document.addEventListener("copy", handleEvent, true);
         document.execCommand("copy");
     }
+    componentDidUnmount() {
+        this.props.dispatch(actions.resetPublishState());
+    }
     render() {
         const { link, coping } = this.props;
         return (
             <div className="posted-message-container">
                 <h2>发布成功！</h2>
                 <div className="message-link-text">
-                    <span>{link}</span>
+                    <a href={link} target="_blank">{link}</a>
                     <a className={`copy-btn ${coping ? "copying" : ""}`}
                        onClick={this.doCopy}>复制</a>
                 </div>
@@ -88,6 +91,11 @@ class PostMessage extends Component {
         this.handleFocus = this.handleFocus.bind(this);
         this.handleBlur = this.handleBlur.bind(this);
         this.handleTimeRangeChange = this.handleTimeRangeChange.bind(this);
+    }
+    componentDidMount() {
+        if (this._textAreaEl) {
+            this._textAreaEl.value = "";
+        }
     }
     componentWillReceiveProps(nextProps) {
         if (!isObjectEqual(nextProps, this.props)) {
@@ -227,7 +235,7 @@ export default ({ userInfo, dispatch, message }) => (
         <div className="mid">
             <div className="main">
                 <Nav value={[{ name: "首页", value: "/" }, { name: "发布", value: null }]} />
-                { message.link ? <PostedSuccess link={message.link} />
+                { message.link ? <PostedSuccess link={message.link} dispatch={dispatch} />
                   : <PostMessage isLoggedIn={!!userInfo.baseInfo} error={message.error} posting={message.posting} dispatch={dispatch} />
                 }
             </div>

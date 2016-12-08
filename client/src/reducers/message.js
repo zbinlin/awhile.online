@@ -4,6 +4,7 @@ import {
     POST_MESSAGE_REQUEST,
     POST_MESSAGE_SUCCESS,
     POST_MESSAGE_FAILURE,
+    RESET_PUBLISH_STATE,
 } from "../constants";
 
 export default function message(state = {}, action) {
@@ -24,6 +25,9 @@ export default function message(state = {}, action) {
                 posting: false,
                 error: action.payload,
             });
+
+        case RESET_PUBLISH_STATE:
+            return {};
 
         default:
             return state;
