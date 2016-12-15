@@ -9,7 +9,8 @@ import {
     LOGIN_REQUEST,           LOGIN_SUCCESS,           LOGIN_FAILURE,
     LOGOUT_REQUEST,          LOGOUT_SUCCESS,
     RESET_MESSAGE_IDS,
-    RESET_PUBLISH_STATE
+    RESET_PUBLISH_STATE,
+    RESET_LOGIN,
 } from "../constants";
 
 import * as utils from "../utils";
@@ -166,8 +167,13 @@ export function logout() {
         } catch (ex) {
             // empty
         }
-        return await dispatch({
-            type: LOGOUT_SUCCESS,
-        });
+        return await Promise.all([
+            dispatch({
+                type: LOGOUT_SUCCESS,
+            }),
+            dispatch({
+                type: RESET_LOGIN,
+            }),
+        ]);
     };
 }

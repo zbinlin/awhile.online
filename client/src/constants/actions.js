@@ -35,6 +35,8 @@ export const LOGIN_REQUEST = "login request";
 export const LOGIN_SUCCESS = "login success";
 export const LOGIN_FAILURE = "login failure";
 
+export const RESET_LOGIN = "reset login state";
+
 // logout
 export const LOGOUT_REQUEST = "logout request";
 export const LOGOUT_SUCCESS = "logout success";

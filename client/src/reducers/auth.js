@@ -4,6 +4,7 @@ import {
     LOGIN_REQUEST,
     LOGIN_SUCCESS,
     LOGIN_FAILURE,
+    RESET_LOGIN,
 } from "../constants";
 
 export default function auth(state = {}, action) {
@@ -24,6 +25,9 @@ export default function auth(state = {}, action) {
                 processing: false,
                 error: action.payload,
             });
+
+        case RESET_LOGIN:
+            return {};
 
         default:
             return state;

@@ -88,6 +88,13 @@ export default class Login extends Component {
                 errorMessage: auth.error.message,
                 loggedIn: false,
             });
+        } else {
+            // reset
+            this.setState({
+                processing: false,
+                errorMessage: "",
+                loggedIn: false,
+            });
         }
     }
     componentWillReceiveProps(nextProps) {
