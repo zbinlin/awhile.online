@@ -58,7 +58,7 @@ const PG_TN_USERS = "awhile_users"; // users table
 
 const GUEST_NAME = "anonymous";
 
-const ASSETS_PATH = path.join(process.cwd(), "dist/assets");
+const ASSETS_PATH = env.NODE_ASSETS_PATH || path.join(process.cwd(), "dist/production/public");
 
 const GUEST_TTL_RANGE = {
     min: moment.duration(10, "minutes").asSeconds(),

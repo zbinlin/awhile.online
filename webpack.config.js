@@ -1,9 +1,14 @@
 "use strict";
 
+const webpack = require("webpack");
+
 module.exports = {
-    entry: "./client/src/app.js",
+    entry: {
+        app: "./client/src/app.js",
+        vendor: ["babel-polyfill", "whatwg-fetch", "preact", "preact-router", "redux", "redux-thunk", "moment", "qr.js", "shared-session-storage", "validator"],
+    },
     output: {
-        path: "./client/javascripts/",
+        path: "./client/javascripts",
         filename: "bundle.js",
     },
     module: {
@@ -15,4 +20,10 @@ module.exports = {
             },
         ],
     },
+    plugins: [
+        new webpack.optimize.CommonsChunkPlugin({
+            names: ["vendor"],
+            filename: "vendor.bundle.js",
+        }),
+    ],
 };
