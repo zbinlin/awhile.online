@@ -216,6 +216,9 @@ webpackJsonp([0],{
 	                error: action.payload
 	            });
 
+	        case _constants.RESET_LOGIN:
+	            return {};
+
 	        default:
 	            return state;
 	    }
@@ -341,6 +344,8 @@ webpackJsonp([0],{
 	var LOGIN_REQUEST = exports.LOGIN_REQUEST = "login request";
 	var LOGIN_SUCCESS = exports.LOGIN_SUCCESS = "login success";
 	var LOGIN_FAILURE = exports.LOGIN_FAILURE = "login failure";
+
+	var RESET_LOGIN = exports.RESET_LOGIN = "reset login state";
 
 	// logout
 	var LOGOUT_REQUEST = exports.LOGOUT_REQUEST = "logout request";
@@ -993,9 +998,11 @@ webpackJsonp([0],{
 
 	                        case 9:
 	                            _context7.next = 11;
-	                            return dispatch({
+	                            return Promise.all([dispatch({
 	                                type: _constants.LOGOUT_SUCCESS
-	                            });
+	                            }), dispatch({
+	                                type: _constants.RESET_LOGIN
+	                            })]);
 
 	                        case 11:
 	                            return _context7.abrupt("return", _context7.sent);
@@ -4112,6 +4119,13 @@ webpackJsonp([0],{
 	                this.setState({
 	                    processing: false,
 	                    errorMessage: auth.error.message,
+	                    loggedIn: false
+	                });
+	            } else {
+	                // reset
+	                this.setState({
+	                    processing: false,
+	                    errorMessage: "",
 	                    loggedIn: false
 	                });
 	            }
