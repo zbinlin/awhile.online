@@ -32,6 +32,10 @@ const clientEntry = {
     path: path.join(process.cwd(), "./client/"),
     filename: "index.html",
 };
+const serverEntry = {
+    path: process.cwd(),
+    filename: "index.js",
+};
 
 function generateVersion() {
     return "" + Date.now();
@@ -88,6 +92,7 @@ function linkToProduction() {
 function generatePackageJSON() {
     const _pkg = Object.assign({}, {
         name: pkg.name,
+        main: path.join(PRODUCTION, serverEntry.filename),
         version: pkg.version,
         dependencies: pkg.dependencies,
     });
@@ -348,9 +353,8 @@ function trySave(type, target, contents, keepName) {
 }
 
 function deployServer() {
-    const filename = "index.js";
-    return readFile(path.join(process.cwd(), filename)).then(contents => {
-        const dest = path.join("/", filename);
+    return readFile(path.join(serverEntry.path, serverEntry.filename)).then(contents => {
+        const dest = path.join("/", serverEntry.filename);
         return trySave("server", dest, contents, true);
     });
 }
