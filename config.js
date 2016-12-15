@@ -58,9 +58,9 @@ const PG_TN_USERS = "awhile_users"; // users table
 
 const GUEST_NAME = "anonymous";
 
-const ASSETS_PATH = env.NODE_ASSETS_PATH || path.join(process.cwd(), "dist/production/public");
+const ASSETS_PATH = env.NODE_ASSETS_PATH || path.join(process.cwd(), "client/");
 
-const MANIFEST_PATH = isProduction ? "./manifest.json" : path.join(process.cwd(), "./dist/manifest.json");
+const MANIFEST_PATH = env.NODE_ASSETS_PATH ? "./manifest.json" : null;
 
 const GUEST_TTL_RANGE = {
     min: moment.duration(10, "minutes").asSeconds(),
