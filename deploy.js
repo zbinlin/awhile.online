@@ -21,17 +21,21 @@ const exec = promisify(childProcess.exec);
 const DEST = process.env.DEPLOY_DEST || "./dist";
 const versions = path.join(DEST, "versions");
 const PRODUCTION = "production";
-const VERSION = new Date().toISOString();
+const VERSION = generateVersion();
+const PUBLIC = "public";
 const MANIFEST = "manifest.json";
 const productionPath = path.join(DEST, PRODUCTION);
 const versionPath = path.join(versions, VERSION);
-const publicPath = path.join(versionPath, "public");
 const manifestPath = path.join(DEST, MANIFEST);
 
 const clientEntry = {
     path: path.join(process.cwd(), "./client/"),
     filename: "index.html",
 };
+
+function generateVersion() {
+    return "" + Date.now();
+}
 
 function getManifest() {
     return readFile(manifestPath, {
@@ -315,21 +319,27 @@ function trySave(type, target, contents, keepName) {
         contents = Buffer.from(contents, "utf8");
     }
     const paths = {
-        client: publicPath,
-        server: versionPath,
+        source: {
+            client: path.join(productionPath, PUBLIC),
+            server: productionPath,
+        },
+        target: {
+            client: path.join(versionPath, PUBLIC),
+            server: versionPath,
+        },
     };
     return prevManifest.then(result => {
         const hashMap = result[type];
         return md5sum(contents).then(md5 => {
             const hashPath = keepName ? target : createNewPath(target, md5);
-            const sourcePath = path.join(productionPath, hashPath);
-            const targetPath = path.join(paths[type], hashPath);
-            let ret;
-            if (hashMap.has(hashPath) && md5 === hashMap.get(hashPath)[1]) {
-                ret = linkFile(sourcePath, targetPath);
+            const sourcePath = path.join(paths.source[type], hashPath);
+            const targetPath = path.join(paths.target[type], hashPath);
+            const dirname = path.dirname(targetPath);
+            let ret = mkdir(dirname);
+            if (hashMap.has(target) && md5 === hashMap.get(target)[1]) {
+                ret = ret.then(() => linkFile(sourcePath, targetPath));
             } else {
-                const dirname = path.dirname(targetPath);
-                ret = mkdir(dirname).then(() => writeFile(targetPath, contents));
+                ret = ret.then(() => writeFile(targetPath, contents));
             }
             currManifest[type].set(target, [hashPath, md5]);
             return ret.then(() => md5);
