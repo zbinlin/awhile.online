@@ -73,9 +73,9 @@ const PG_TN_USERS = "awhile_users"; // users table
 
 const GUEST_NAME = "anonymous";
 
-const ASSETS_PATH = env.NODE_ASSETS_PATH || path.join(process.cwd(), "dist/production/public");
+const ASSETS_PATH = env.NODE_ASSETS_PATH || path.join(process.cwd(), "client/");
 
-const MANIFEST_PATH = isProduction ? "./manifest.json" : path.join(process.cwd(), "./dist/manifest.json");
+const MANIFEST_PATH = env.NODE_ASSETS_PATH ? "./manifest.json" : null;
 
 const GUEST_TTL_RANGE = {
     min: moment.duration(10, "minutes").asSeconds(),
@@ -593,15 +593,21 @@ function outputToJS(str) {
 }
 
 function getManifest() {
-    const data = fs.readFileSync(MANIFEST_PATH, {
-        encoding: "utf8"
-    });
-    return new Map(JSON.parse(data).client);
+    if (MANIFEST_PATH) {
+        const data = fs.readFileSync(MANIFEST_PATH, {
+            encoding: "utf8"
+        });
+        return new Map(JSON.parse(data).client);
+    }
 }
 let manifest = getManifest();
 const assets = new Proxy({}, {
     get(target, name, receive) {
-        return (manifest.get(name) || [])[0];
+        if (MANIFEST_PATH) {
+            return (manifest.get(name) || [])[0];
+        } else {
+            return name;
+        }
     }
 });
 
