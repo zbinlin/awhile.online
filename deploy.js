@@ -26,7 +26,8 @@ const PUBLIC = "public";
 const MANIFEST = "manifest.json";
 const productionPath = path.join(DEST, PRODUCTION);
 const versionPath = path.join(versions, VERSION);
-const manifestPath = path.join(DEST, MANIFEST);
+const prevManifestPath = path.join(productionPath, MANIFEST);
+const currManifestPath = path.join(versionPath, MANIFEST);
 
 const clientEntry = {
     path: path.join(process.cwd(), "./client/"),
@@ -42,7 +43,7 @@ function generateVersion() {
 }
 
 function getManifest() {
-    return readFile(manifestPath, {
+    return readFile(prevManifestPath, {
         encoding: "utf8",
     }).then(contents => {
         const json = JSON.parse(contents);
@@ -62,7 +63,7 @@ function saveManifest(manifest) {
         client: [...manifest.client.entries()],
         server: [...manifest.server.entries()],
     };
-    return writeFile(manifestPath, JSON.stringify(obj, null, "  "));
+    return writeFile(currManifestPath, JSON.stringify(obj, null, "  "));
 }
 
 const prevManifest = getManifest();
