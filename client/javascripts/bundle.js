@@ -101,9 +101,10 @@ webpackJsonp([0],{
 	    return App;
 	}(_preact.Component);
 
-	document.body.innerHTML = "";
-
-	(0, _preact.render)((0, _preact.h)(App, { store: _store2.default, messageContent: window.messageContent }), document.body);
+	window.addEventListener("DOMContentLoaded", function () {
+	    document.body.innerHTML = "";
+	    (0, _preact.render)((0, _preact.h)(App, { store: _store2.default, messageContent: window.messageContent }), document.body);
+	}, true);
 
 /***/ },
 

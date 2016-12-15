@@ -14,6 +14,7 @@ var moment = _interopDefault(require('moment'));
 var Router = _interopDefault(require('koa-router'));
 var crypto = require('crypto');
 var muyun = require('muyun');
+var fs = require('fs');
 var coParse = _interopDefault(require('co-body'));
 var validator = _interopDefault(require('validator'));
 var jwt = require('jsonwebtoken');
@@ -73,6 +74,8 @@ const PG_TN_USERS = "awhile_users"; // users table
 const GUEST_NAME = "anonymous";
 
 const ASSETS_PATH = env.NODE_ASSETS_PATH || path.join(process.cwd(), "dist/production/public");
+
+const MANIFEST_PATH = isProduction ? "./manifest.json" : path.join(process.cwd(), "./dist/manifest.json");
 
 const GUEST_TTL_RANGE = {
     min: moment.duration(10, "minutes").asSeconds(),
@@ -589,13 +592,25 @@ function outputToJS(str) {
     return JSON.stringify(str).replace(JS_UNSAFE_CHARS_REGEXP, ch => JS_ESCAPED_CHARS[ch]);
 }
 
-//import assets from "generate-assets-hash";
-const assets = {
-    cssVendorBundleHash: "normalize",
-    cssBundleHash: "layout",
-    jsVendorBundleHash: "vendor.bundle",
-    jsBundleHash: "bundle"
-};
+function getManifest() {
+    const data = fs.readFileSync(MANIFEST_PATH, {
+        encoding: "utf8"
+    });
+    return new Map(JSON.parse(data).client);
+}
+let manifest = getManifest();
+const assets = new Proxy({}, {
+    get(target, name, receive) {
+        return (manifest.get(name) || [])[0];
+    }
+});
+
+process.on("SIGUSR2", function handleUpdateManifest() {
+    console.log("reload manifest.json");
+    manifest = getManifest();
+});
+
+const hash = ([key]) => assets[key];
 
 const layoutRouter = new Router();
 
@@ -614,9 +629,10 @@ layoutRouter.get(["/", "/index.html", "/publish.html", "/login.html", "/register
         <meta charset="UTF-8">
         <title>Awhile.Online</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="/stylesheets/${ assets.cssVendorBundleHash }.css" rel="stylesheet">
-        <link href="/stylesheets/${ assets.cssBundleHash }.css" rel="stylesheet">
-        <script src="/javascripts/${ assets.jsVendorBundleHash }.js" async></script>
+        <link href="${ hash`/stylesheets/normalize.css` }" rel="stylesheet">
+        <link href="${ hash`/stylesheets/layout.css` }" rel="stylesheet">
+        <script src="${ hash`/javascripts/vendor.bundle.js` }"></script>
+        <script src="${ hash`/javascripts/bundle.js` }"></script>
     </head>
     <body>
         <div class="jumbotron">
@@ -667,12 +683,13 @@ const middleware = function* messageMiddleware() {
         <title>Awhile.Online</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noindex">
-        <link href="/stylesheets/${ assets.cssVendorBundleHash }.css" rel="stylesheet">
-        <link href="/stylesheets/${ assets.cssBundleHash }.css" rel="stylesheet">
+        <link href="${ hash`/stylesheets/normalize.css` }" rel="stylesheet">
+        <link href="${ hash`/stylesheets/layout.css` }" rel="stylesheet">
         <script>
             window.messageContent = ${ content && outputToJS(content) };
         </script>
-        <script src="/javascripts/${ assets.jsVendorBundleHash }.js" async></script>
+        <script src="${ hash`/javascripts/vendor.bundle.js` }"></script>
+        <script src="${ hash`/javascripts/bundle.js` }"></script>
     </head>
     <body>
         <div class="jumbotron">
