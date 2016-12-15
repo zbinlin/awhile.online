@@ -53,6 +53,7 @@ class App extends Component {
     }
 }
 
-document.body.innerHTML = "";
-
-render(<App store={store} messageContent={window.messageContent} />, document.body);
+window.addEventListener("DOMContentLoaded", () => {
+    document.body.innerHTML = "";
+    render(<App store={store} messageContent={window.messageContent} />, document.body);
+}, true);
