@@ -10,6 +10,10 @@ import {
     outputToJS,
 } from "./utils";
 
+import assets from "./assets-manifest";
+
+const hash = ([key]) => assets[key];
+
 const layoutRouter = new Router();
 
 // mount /
@@ -33,9 +37,10 @@ layoutRouter.get([
         <meta charset="UTF-8">
         <title>Awhile.Online</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="/stylesheets/normalize.css" rel="stylesheet">
-        <link href="/stylesheets/layout.css" rel="stylesheet">
-        <script src="/javascripts/bundle.js" async></script>
+        <link href="${hash`/stylesheets/normalize.css`}" rel="stylesheet">
+        <link href="${hash`/stylesheets/layout.css`}" rel="stylesheet">
+        <script src="${hash`/javascripts/vendor.bundle.js`}"></script>
+        <script src="${hash`/javascripts/bundle.js`}"></script>
     </head>
     <body>
         <div class="jumbotron">
@@ -86,12 +91,13 @@ const middleware = function* messageMiddleware() {
         <title>Awhile.Online</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noindex">
-        <link href="/stylesheets/normalize.css" rel="stylesheet">
-        <link href="/stylesheets/layout.css" rel="stylesheet">
+        <link href="${hash`/stylesheets/normalize.css`}" rel="stylesheet">
+        <link href="${hash`/stylesheets/layout.css`}" rel="stylesheet">
         <script>
             window.messageContent = ${content && outputToJS(content)};
         </script>
-        <script src="/javascripts/bundle.js" async></script>
+        <script src="${hash`/javascripts/vendor.bundle.js`}"></script>
+        <script src="${hash`/javascripts/bundle.js`}"></script>
     </head>
     <body>
         <div class="jumbotron">

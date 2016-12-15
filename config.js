@@ -60,6 +60,8 @@ const GUEST_NAME = "anonymous";
 
 const ASSETS_PATH = env.NODE_ASSETS_PATH || path.join(process.cwd(), "dist/production/public");
 
+const MANIFEST_PATH = isProduction ? "./manifest.json" : path.join(process.cwd(), "./dist/manifest.json");
+
 const GUEST_TTL_RANGE = {
     min: moment.duration(10, "minutes").asSeconds(),
     max: moment.duration(5, "days").asSeconds(),
@@ -80,4 +82,5 @@ export {
     ASSETS_PATH,
     GUEST_TTL_RANGE,
     MEMBER_TTL_RANGE,
+    MANIFEST_PATH,
 };
