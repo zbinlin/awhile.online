@@ -73,7 +73,6 @@
     "postcss": "^5.2.6",
     "postcss-value-parser": "^3.3.0",
     "posthtml": "^0.9.1",
-    "promise-adapter": "^2.0.1",
     "react": "^15.4.1",
     "react-addons-test-utils": "^15.4.1",
     "react-dom": "^15.4.1",
