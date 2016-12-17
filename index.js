@@ -75,7 +75,7 @@ const GUEST_NAME = "anonymous";
 
 const ASSETS_PATH = env.NODE_ASSETS_PATH || path.join(process.cwd(), "client/");
 
-const MANIFEST_PATH = env.NODE_ASSETS_PATH ? "./manifest.json" : null;
+const MANIFEST_PATH = env.NODE_ASSETS_PATH ? path.join(__dirname, "manifest.json") : null;
 
 const GUEST_TTL_RANGE = {
     min: moment.duration(10, "minutes").asSeconds(),
@@ -592,19 +592,20 @@ function outputToJS(str) {
     return JSON.stringify(str).replace(JS_UNSAFE_CHARS_REGEXP, ch => JS_ESCAPED_CHARS[ch]);
 }
 
-function getManifest() {
+function getVersion() {
     if (MANIFEST_PATH) {
         const data = fs.readFileSync(MANIFEST_PATH, {
             encoding: "utf8"
         });
-        return new Map(JSON.parse(data).client);
+        const json = JSON.parse(data);
+        return new Map(json.versions[json.currentIndex].client);
     }
 }
-let manifest = getManifest();
+let version = getVersion();
 const assets = new Proxy({}, {
     get(target, name, receive) {
         if (MANIFEST_PATH) {
-            return (manifest.get(name) || [])[0];
+            return (version.get(name) || [])[0];
         } else {
             return name;
         }
@@ -613,7 +614,7 @@ const assets = new Proxy({}, {
 
 process.on("SIGUSR2", function handleUpdateManifest() {
     console.log("reload manifest.json");
-    manifest = getManifest();
+    version = getVersion();
 });
 
 const hash = ([key]) => assets[key];
