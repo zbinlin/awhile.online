@@ -1,0 +1,17 @@
+[Unit]
+Description=Awhile.online - a node.js App
+Requires=postgresql.service
+Requires=redis.service
+After=postgresql.service redis.service
+
+[Service]
+Type=simple
+ExecStart=
+ExecStart=/usr/bin/node /srv/awhile.online/production/index.js
+ExecReload=/usr/bin/kill -HUP $MAINPID
+Restart=on-failure
+WorkingDirectory=/srv/awhile.online/production
+EnvironmentFile=/srv/configs/awhile.online.env.txt
+
+[Install]
+WantedBy=multi-user.target
