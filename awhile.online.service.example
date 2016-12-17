@@ -7,10 +7,10 @@ After=postgresql.service redis.service
 [Service]
 Type=simple
 ExecStart=
-ExecStart=/usr/bin/node /srv/awhile.online/production/index.js
+ExecStart=/usr/bin/node /srv/awhile.online/index.js
 ExecReload=/usr/bin/kill -HUP $MAINPID
 Restart=on-failure
-WorkingDirectory=/srv/awhile.online/production
+WorkingDirectory=/srv/awhile.online
 EnvironmentFile=/srv/configs/awhile.online.env.txt
 
 [Install]
