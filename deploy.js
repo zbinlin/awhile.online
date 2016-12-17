@@ -4,7 +4,6 @@ const path = require("path");
 const fs = require("fs");
 const pkg = require("./package.json");
 const mkdir = require("mkdir-promise");
-const childProcess = require("child_process");
 const crypto = require("crypto");
 const promisify = require("promise-adapter");
 const posthtml = require("posthtml");
@@ -14,86 +13,91 @@ const valueParser = require("postcss-value-parser");
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 const linkFile = promisify(fs.link);
-const symlink = promisify(fs.symlink);
 const unlink = promisify(fs.unlink);
-const exec = promisify(childProcess.exec);
+const noop = () => {};
 
-const DEST = process.env.DEPLOY_DEST || "./dist";
-const versions = path.join(DEST, "versions");
-const PRODUCTION = "production";
-const VERSION = generateVersion();
+const CWD = process.cwd();
+const DEST = process.env.DEPLOY_DEST || path.join(CWD, "./dist");
 const PUBLIC = "public";
+const SERVER = "server";
 const MANIFEST = "manifest.json";
-const productionPath = path.join(DEST, PRODUCTION);
-const versionPath = path.join(versions, VERSION);
-const prevManifestPath = path.join(productionPath, MANIFEST);
-const currManifestPath = path.join(versionPath, MANIFEST);
+const publicPath = path.join(DEST, PUBLIC);
+const serverPath = path.join(DEST, SERVER);
+const manifestPath = path.join(DEST, MANIFEST);
 
 const clientEntry = {
-    path: path.join(process.cwd(), "./client/"),
+    path: path.join(CWD, "./client/"),
     filename: "index.html",
 };
 const serverEntry = {
-    path: process.cwd(),
+    path: CWD,
     filename: "index.js",
 };
 
-function generateVersion() {
-    return "" + Date.now();
-}
+const writedFiles = [];
+const write = (...args) => {
+    return writeFile(...args).then(ret => {
+        writedFiles.push(args[0]);
+        return ret;
+    });
+};
 
+function getCurrentVersionFromManifest(manifest) {
+    return parseVersion(manifest.versions[manifest.currentIndex]);
+}
+function parseVersion(ver = {}) {
+    const { client, server } = ver;
+    return Object.assign({}, ver, {
+        client: new Map(client),
+        server: new Map(server),
+    });
+}
+function serializeVersion(ver) {
+    const { client, server } = ver;
+    return Object.assign({}, ver, {
+        client: [...client],
+        server: [...server],
+    });
+}
 function getManifest() {
-    return readFile(prevManifestPath, {
+    return readFile(manifestPath, {
         encoding: "utf8",
     }).then(contents => {
-        const json = JSON.parse(contents);
-        return {
-            client: new Map(json.client),
-            server: new Map(json.server),
-        };
+        return JSON.parse(contents);
     }).catch(ex => {
         return {
-            client: new Map(),
-            server: new Map(),
+            current: null,
+            currentIndex: -1,
+            versions: [],
         };
     });
 }
 function saveManifest(manifest) {
-    const obj = {
-        client: [...manifest.client.entries()],
-        server: [...manifest.server.entries()],
-    };
-    return writeFile(currManifestPath, JSON.stringify(obj, null, "  "));
+    return writeFile(manifestPath, JSON.stringify(manifest, null, "  "));
+}
+function updateManifest(latestVersion) {
+    return manifestPromise.then(manifest => {
+        const currentIndex = (manifest.currentIndex || 0) + 1;
+        const newVersions = manifest.versions.slice(0, currentIndex);
+        const newVersion = serializeVersion(latestVersion);
+        newVersions.push(newVersion);
+        return {
+            currentIndex,
+            current: newVersion.id,
+            versions: newVersions,
+        };
+    }).then(saveManifest);
 }
 
-const prevManifest = getManifest();
-const currManifest = {
-    client: new Map(),
-    server: new Map(),
-};
-
-function createVersionDirectory() {
-    return mkdir(versionPath);
-}
-function removeVersionDirectory() {
-    return exec(`rm -r "${versionPath}"`);
-}
-
-function linkToProduction() {
-    return unlink(productionPath).catch(() => {})
-        .then(() => {
-            return symlink(
-                path.relative(path.dirname(productionPath, versionPath), versionPath),
-                productionPath,
-                "dir"
-            );
-        });
-}
+const manifestPromise = getManifest();
+const lastVersionPromise = manifestPromise.then(getCurrentVersionFromManifest);
+const newVersion = parseVersion();
+newVersion.id = new Date().toISOString();
 
 function generatePackageJSON() {
     const _pkg = Object.assign({}, {
         name: pkg.name,
-        main: path.join(PRODUCTION, serverEntry.filename),
+        main: serverEntry.filename,
         version: pkg.version,
         dependencies: pkg.dependencies,
     });
@@ -264,8 +268,8 @@ function trimPath(filePath) {
 function processResource(filePath, basePath) {
     const localPath = path.resolve(clientEntry.path, basePath, trimPath(filePath));
     const normalizedPath = path.resolve("/", path.relative(clientEntry.path, localPath));
-    if (currManifest.client.has(normalizedPath)) {
-        const hashValue = currManifest.client.get(normalizedPath);
+    if (newVersion.client.has(normalizedPath)) {
+        const hashValue = newVersion.client.get(normalizedPath);
         if (hashValue instanceof Promise) {
             return hashValue.then(md5 => createNewPath(filePath, md5));
         } else {
@@ -290,7 +294,7 @@ function processResource(filePath, basePath) {
     ret = ret.then(contents => {
         return trySave("client", normalizedPath, contents);
     });
-    currManifest.client.set(normalizedPath, ret);
+    newVersion.client.set(normalizedPath, ret);
     return ret.then(md5 => {
         return createNewPath(filePath, md5);
     });
@@ -325,38 +329,39 @@ function trySave(type, target, contents, keepName) {
         contents = Buffer.from(contents, "utf8");
     }
     const paths = {
-        source: {
-            client: path.join(productionPath, PUBLIC),
-            server: productionPath,
-        },
-        target: {
-            client: path.join(versionPath, PUBLIC),
-            server: versionPath,
-        },
+        client: publicPath,
+        server: serverPath,
     };
-    return prevManifest.then(result => {
+    return lastVersionPromise.then(result => {
         const hashMap = result[type];
         return md5sum(contents).then(md5 => {
             const hashPath = keepName ? target : createNewPath(target, md5);
-            const sourcePath = path.join(paths.source[type], hashPath);
-            const targetPath = path.join(paths.target[type], hashPath);
+            const targetPath = path.join(paths[type], hashPath);
             const dirname = path.dirname(targetPath);
             let ret = mkdir(dirname);
             if (hashMap.has(target) && md5 === hashMap.get(target)[1]) {
-                ret = ret.then(() => linkFile(sourcePath, targetPath));
+                // nothing
             } else {
-                ret = ret.then(() => writeFile(targetPath, contents));
+                ret = ret.then(() => write(targetPath, contents));
             }
-            currManifest[type].set(target, [hashPath, md5]);
+            newVersion[type].set(target, [hashPath, md5]);
             return ret.then(() => md5);
         });
     });
 }
 
 function deployServer() {
+    const dest = path.join("/", serverEntry.filename);
     return readFile(path.join(serverEntry.path, serverEntry.filename)).then(contents => {
-        const dest = path.join("/", serverEntry.filename);
-        return trySave("server", dest, contents, true);
+        return trySave("server", dest, contents);
+    }).then(() => {
+        const index = path.join(DEST, serverEntry.filename);
+        return unlink(index).catch(noop).then(() => {
+            return linkFile(
+                path.join(serverPath, newVersion.server.get(dest)[0]),
+                index
+            );
+        });
     });
 }
 
@@ -365,21 +370,15 @@ function deployClient() {
 }
 
 function prepare() {
-    return Promise.all([
-        createVersionDirectory(),
-        generatePackageJSON(),
-    ]);
+    return mkdir(DEST);
 }
 
 function finish() {
-    return Promise.all([
-        saveManifest(currManifest),
-        linkToProduction(),
-    ]);
+    return updateManifest(newVersion);
 }
 
 function cleanup() {
-    return removeVersionDirectory();
+    return Promise.all(writedFiles.map(filePath => unlink(filePath)));
 }
 
 
@@ -387,6 +386,7 @@ function deploy() {
     return prepare()
         .then(() => {
             return Promise.all([
+                generatePackageJSON(),
                 deployClient(),
                 deployServer(),
             ]).then(() => {
