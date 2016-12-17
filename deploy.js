@@ -9,6 +9,8 @@ const promisify = require("promise-adapter");
 const posthtml = require("posthtml");
 const postcss = require("postcss");
 const valueParser = require("postcss-value-parser");
+const cssnano = require("cssnano");
+const uglifyJS = require("uglify-js");
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
@@ -312,16 +314,26 @@ function processCSS(filePath) {
     return readFile(filePath, {
         encoding: "utf8",
     }).then(contents => {
-        return postcss([postcssPlugin({filePath})]).process(contents);
+        return postcss([
+            postcssPlugin({filePath}),
+            cssnano({
+                autoprefixer: {
+                    add: true,
+                    browsesrs: ["IE9"],
+                },
+            }),
+        ]).process(contents);
     }).then(result => result.css);
+}
+
+function processJS(filePath) {
+    return readFile(filePath, {
+        encoding: "utf8",
+    }).then(contents => uglifyJS.minify(contents, { fromString: true }).code);
 }
 
 function processRawFile(filePath) {
     return readFile(filePath);
-}
-
-function processJS(filePath) {
-    return processRawFile(filePath);
 }
 
 function trySave(type, target, contents, keepName) {
