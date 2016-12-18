@@ -35,7 +35,7 @@ layoutRouter.get([
 <html lang="zh-Hans">
     <head>
         <meta charset="UTF-8">
-        <title>Awhile.Online</title>
+        <title>Awhile.Online - Beta</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="${hash`/stylesheets/normalize.css`}" rel="stylesheet">
         <link href="${hash`/stylesheets/layout.css`}" rel="stylesheet">
@@ -88,7 +88,7 @@ const middleware = function* messageMiddleware() {
 <html lang="zh-Hans">
     <head>
         <meta charset="UTF-8">
-        <title>Awhile.Online</title>
+        <title>Awhile.Online - Beta</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noindex">
         <link href="${hash`/stylesheets/normalize.css`}" rel="stylesheet">

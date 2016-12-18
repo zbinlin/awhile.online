@@ -25,7 +25,7 @@ const assets = new Proxy({}, {
     },
 });
 
-process.on("SIGUSR2", function handleUpdateManifest() {
+process.on("SIGHUP", function handleUpdateManifest() {
     console.log("reload manifest.json");
     version = getVersion();
 });
