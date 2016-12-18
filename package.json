@@ -14,8 +14,8 @@
     "prebuild-server": "npm run test-server",
     "build-server": "npm run rollup",
     "serve": "babel-node server/index.js",
-    "predeploy": "npm run rollup && npm run webpack",
-    "deploy": "node deploy.js",
+    "predeploy": "NODE_ENV=production npm run rollup && NODE_ENV=production npm run webpack",
+    "deploy": "NODE_ENV=production node deploy.js",
     "lint": "eslint server/**/*.js && eslint client/src/**/*.js{x,}"
   },
   "repository": {

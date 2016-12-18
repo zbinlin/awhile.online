@@ -25,5 +25,10 @@ module.exports = {
             names: ["vendor"],
             filename: "vendor.bundle.js",
         }),
+        new webpack.DefinePlugin({
+            "process.env": {
+                "NODE_ENV": `"${process.env.NODE_ENV}"`,
+            },
+        }),
     ],
 };
