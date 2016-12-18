@@ -201,7 +201,7 @@ apiRouter.post("/users", function* () {
                     username: {
                         valid: false,
                         customError: true,
-                        customErrorMessage: "the username is exists",
+                        customErrorMessage: ERROR.USERNAME_IS_EXISTS.message,
                     },
                 },
             });
