@@ -65,9 +65,11 @@ export default class Login extends Component {
             errorMessage: "",
             processing: false,
         };
-        setTimeout(this.updateState.bind(this, this.props.auth));
+        setTimeout(() => {
+            this.updateStateFrom(this.props.auth);
+        });
     }
-    updateState(auth) {
+    updateStateFrom(auth) {
         if (auth.processing) {
             this.setState({
                 processing: true,
@@ -99,7 +101,7 @@ export default class Login extends Component {
     }
     componentWillReceiveProps(nextProps) {
         if (nextProps.auth !== this.props.auth) {
-            this.updateState(nextProps.auth);
+            this.updateStateFrom(nextProps.auth);
         }
     }
     handleSubmit(evt) {

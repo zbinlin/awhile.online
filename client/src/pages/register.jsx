@@ -4,6 +4,7 @@ import { h, Component } from "preact";
 
 import { User, Jumbotron, Nav } from "../components";
 import * as actions from "../actions";
+import { isObjectEqual } from "../utils";
 import {
     validateRegister,
     mapValidityStatesToMessages,
@@ -38,24 +39,26 @@ class RegisterForm extends Component {
         };
         this.handleSubmit = this.handleSubmit.bind(this);
         this.togglePasswordViewer = this.togglePasswordViewer.bind(this);
+        setTimeout(() => {
+            this.updateStateFrom(this.props);
+        });
     }
     updateStateFrom(props) {
         const nextState = {};
         nextState.submitting = props.processing;
-        if (!props.error) {
-            return;
+        if (props.error) {
+            const { message, detail } = props.error;
+            if (detail) {
+                Object.assign(
+                    nextState,
+                    this.normalizeErrorMessageName(
+                        mapValidityStatesToMessages(detail, ERROR_MESSAGES),
+                    ),
+                );
+            } else {
+                nextState.errorMessage = message;
+            }
         }
-        const { message, detail } = props.error;
-        if (!detail) {
-            nextState.errorMessage = message;
-            return this.setState(nextState);
-        }
-        Object.assign(
-            nextState,
-            this.normalizeErrorMessageName(
-                mapValidityStatesToMessages(detail, ERROR_MESSAGES),
-            ),
-        );
         this.setState(nextState);
     }
     normalizeErrorMessageName(message) {
@@ -64,6 +67,11 @@ class RegisterForm extends Component {
             passwordValidityMessage: message.password,
             emailValidityMessage: message.email,
         };
+    }
+    componentWillReceiveProps(nextProps) {
+        if (!isObjectEqual(nextProps, this.props)) {
+            this.updateStateFrom(nextProps);
+        }
     }
     handleSubmit(evt) {
         evt.preventDefault();
