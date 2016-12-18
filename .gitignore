@@ -2,3 +2,5 @@ node_modules/
 dist/
 awhile.online.service
 awhile.online.env.txt
+/client/javascripts
+/index.js
