@@ -17,6 +17,7 @@ import validator from "validator";
  * @property {boolean} valid
  */
 
+
 function checkLength(str, min, max) {
     const validity = {
         valid: true,
@@ -33,6 +34,21 @@ function checkLength(str, min, max) {
     }
     return validity;
 }
+
+function checkUsername(username) {
+    const validity = checkLength(username, 3, 32);
+    if (!validity.valid) {
+        return validity;
+    } else if (/^[~!@#$%^&*()-+=]/.test(username)) {
+        return {
+            valid: false,
+            patternMismatch: true,
+        };
+    } else {
+        return validity;
+    }
+}
+
 function checkEmail(email) {
     const validity = {
         valid: true,
@@ -50,7 +66,7 @@ function checkEmail(email) {
 
 export function validateRegister(params) {
     const validities = {};
-    validities.username = checkLength(params.username, 3, 32);
+    validities.username = checkUsername(params.username);
     validities.password = checkLength(params.password, 6, 128);
     validities.email = checkEmail(params.email);
     if (validities.username.valid &&

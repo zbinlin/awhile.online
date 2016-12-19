@@ -15,6 +15,7 @@ const ERROR_MESSAGES = {
         valueMismatch: "用户名不能为空",
         tooShort: "用户名长度必须至少 3 个字符",
         tooLong: "用户名长度不能超过 32 个字符",
+        patternMismatch: "用户名必须以字母开头",
     },
     password: {
         tooShort: "密码长度至少 6 个字符",
