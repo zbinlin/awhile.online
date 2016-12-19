@@ -49,9 +49,6 @@ function parseAuthorizatioHeader(ctx) {
         token: token.trim(),
     };
 }
-async function checkTokenInRevocationList(token) {
-    return await user.tokenInRevocationList(token);
-}
 function authorize(passThrough = false) {
     return function* (next) {
         const ctx = this;
@@ -75,18 +72,9 @@ function authorize(passThrough = false) {
                 });
             }
         }
-        if (yield checkTokenInRevocationList(token)) {
-            if (passThrough) {
-                return yield next;
-            } else {
-                return doThrow(ctx, {
-                    statusCode: 401,
-                    message: ERROR.USER_LOGGED_OUT.message,
-                });
-            }
-        }
         try {
-            ctx.state.credentials = yield verifyToken(token);
+            const secret = yield user.getSecretByToken(token);
+            ctx.state.credentials = yield verifyToken(token, secret);
             ctx.state.token = token;
         } catch (ex) {
             if (!passThrough) {
@@ -95,6 +83,7 @@ function authorize(passThrough = false) {
                     message: ERROR.USER_TOKEN_HAS_EXPIRED.message,
                 });
             }
+            console.log(token, ex);
         }
         return yield next;
     };
@@ -154,7 +143,7 @@ apiRouter.delete("/authentication", authorize(), function* () {
         return;
     }
     try {
-        const result = user.logout(token);
+        const result = yield user.logout(token);
         if (result) {
             res.status = 200;
         } else {

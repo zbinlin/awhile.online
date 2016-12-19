@@ -13,6 +13,7 @@ import {
     PG_TN_USERS,
 } from "../config";
 
+const REDIS_JWT_SECRET_KEY = "jwt:secret";
 const REDIS_JWT_PREFIX_KEY = "jwt:revocationlist";
 
 function toBuf(str, encoding = "hex") {
@@ -287,11 +288,13 @@ export async function login(username, password, expiresIn) {
         throw new Error("password incorrect!");
     }
     try {
+        const jti = await generateJTIKey();
+        const secret = await generateJTIValue();
+        await saveSecretByJTI(jti, secret, expiresIn);
         return await signToken({
             aud: username,
-            // NOTE: 保证在同一秒内的 token 不一样
-            rnd: Math.random(),
-        }, {
+            jti: jti,
+        }, secret, {
             expiresIn,
         });
     } catch (ex) {
@@ -303,25 +306,162 @@ export async function login(username, password, expiresIn) {
  * @param {string} token
  */
 export async function logout(token) {
-    let decoded;
+    if (!token) {
+        return;
+    }
     try {
-        decoded = await verifyToken(token);
+        const secret = await getSecretByToken(token);
+        await verifyToken(token, secret);
     } catch (ex) {
         return;
     }
-    const expiresIn = decoded.exp - Math.floor(Date.now() / 1000);
-    const result = await redisClient.setAsync(
-        [REDIS_JWT_PREFIX_KEY, token].join(":"), "", "EX", expiresIn,
-    );
-    return result === "OK";
+    return await removeSecretByToken(token);
 }
 
 
 /**
+ * @deprecated
  * @param {string} token
  */
 export async function tokenInRevocationList(token) {
     return await redisClient.existsAsync(
         [REDIS_JWT_PREFIX_KEY, token].join(":"),
     );
+}
+
+/**
+ * @return {string}
+ */
+async function generateJTIKey() {
+    return new Promise(resolve => {
+        crypto.randomBytes(16, (err, buf) => {
+            if (err) {
+                const buf = Buffer.alloc(16);
+                let cursor = 0;
+                cursor = buf.write(
+                    ("000000000000" + Date.now().toString(16)).slice(-12),
+                    "hex",
+                );
+                cursor = buf.writeUInt32BE(
+                    Math.floor(Math.random() * Math.pow(2, 32)),
+                    cursor,
+                );
+                cursor = buf.writeUInt32BE(
+                    Math.floor(Math.random() * Math.pow(2, 32)),
+                    cursor,
+                );
+                buf.writeUInt16BE(
+                    Math.floor(Math.random() * Math.pow(2, 16)),
+                    cursor,
+                );
+                resolve(buf.toString("hex"));
+            } else {
+                resolve(buf.toString("hex"));
+            }
+        });
+    });
+}
+
+/**
+ * @private
+ * @return {Buffer}
+ */
+async function generateJTIValue() {
+    return new Promise(resolve => {
+        const length = 64;
+        crypto.randomBytes(length, (err, buf) => {
+            if (err) {
+                const buf = Buffer.alloc(length);
+                let cursor = 0;
+                const MAX = Math.pow(2, 32);
+                while ((cursor = buf.writeUInt32BE(
+                    Math.floor(Math.random() * MAX), cursor)) < length);
+                resolve(buf);
+            } else {
+                resolve(buf);
+            }
+        });
+    });
+}
+
+function getRedisJTIKey(jti) {
+    return [REDIS_JWT_SECRET_KEY, jti].join(":");
+}
+
+async function getSecretByJTI(jti) {
+    const result = await redisClient.getAsync(getRedisJTIKey(jti));
+    if (result) {
+        return Buffer.from(result, "hex");
+    }
+}
+/**
+ * @param {string} jti
+ * @param {Buffer} secret
+ * @param {number} expiresIn
+ */
+async function saveSecretByJTI(jti, secret, expiresIn) {
+    if (Buffer.isBuffer(secret)) {
+        secret = secret.toString("hex");
+    }
+    return await redisClient.setAsync(
+        getRedisJTIKey(jti), secret, "EX", expiresIn,
+    );
+}
+async function removeSecretByJTI(jti) {
+    return await redisClient.delAsync(getRedisJTIKey(jti));
+}
+
+/**
+ * @private
+ * @param {string} token
+ * @return {string} jti
+ */
+function getJTIFromToken(token) {
+    try {
+        const payload = token.split(".")[1];
+        if (payload === undefined) {
+            return;
+        }
+        const json = JSON.parse(Buffer.from(payload, "base64").toString());
+        return json.jti;
+    } catch (ex) {
+        // empty
+    }
+}
+
+/**
+ * 根据 token 中的 jti 获取 redis 里的 jwt secret
+ * @public
+ * @param {string} token
+ * @return {Buffer}
+ * @throw
+ */
+export async function getSecretByToken(token) {
+    const jti = getJTIFromToken(token);
+    if (!jti) {
+        throw new Error("invalid token");
+    }
+    const secret = await getSecretByJTI(jti);
+    if (!secret) {
+        throw new Error("jwt secret is not exists");
+    } else {
+        return secret;
+    }
+}
+
+/**
+ * 根据 token 中的 jti 移除 redis 里的 jwt secret
+ * @public
+ * @param {string} token
+ */
+export async function removeSecretByToken(token) {
+    const jti = getJTIFromToken(token);
+    if (!jti) {
+        return;
+    }
+    try {
+        return await removeSecretByJTI(jti);
+    } catch (ex) {
+        // empty
+    }
 }

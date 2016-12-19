@@ -2,13 +2,9 @@
 
 import * as jwt from "jsonwebtoken";
 
-import {
-	JWT_SECRET,
-} from "../config";
-
-export function signToken(payload, options) {
+export function signToken(payload, secret, options) {
     return new Promise((resolve, reject) => {
-        jwt.sign(payload, JWT_SECRET, options, (err, token) => {
+        jwt.sign(payload, secret, options, (err, token) => {
             if (err) {
                 reject(err);
             } else {
@@ -18,9 +14,9 @@ export function signToken(payload, options) {
     });
 }
 
-export function verifyToken(token, options) {
+export function verifyToken(token, secret, options) {
     return new Promise((resolve, reject) => {
-        jwt.verify(token, JWT_SECRET, options, (err, decoded) => {
+        jwt.verify(token, secret, options, (err, decoded) => {
             if (err) {
                 reject(err);
             } else {

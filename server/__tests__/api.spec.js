@@ -343,7 +343,7 @@ describe("test logout api", () => {
                     });
             });
     });
-    it("should response 400 when the user logged out", done => {
+    it("should response 401 when the user logged out", done => {
         request.post("/api/authentication")
             .set("Content-Type", "application/json")
             .send({ username: "admin", password: "123456" })
@@ -383,7 +383,7 @@ describe("test get user information api", () => {
     let token;
     beforeAll(async () => {
         await user.register("admin", "123456", "admin@example.org");
-        token = await user.login("admin", "123456");
+        token = await user.login("admin", "123456", 10);
     });
     afterAll(cancel.bind(null, "admin"));
     it("should returns user information", done => {
@@ -417,7 +417,7 @@ describe("test post message api", () => {
     let token;
     beforeEach(async () => {
         await register("admin");
-        token = await user.login("admin", "123456");
+        token = await user.login("admin", "123456", 10);
     });
     afterEach(async () => {
         try {
@@ -483,7 +483,7 @@ describe("test delete message api", () => {
     let token, id;
     beforeEach(async () => {
         await register("admin");
-        token = await user.login("admin", "123456");
+        token = await user.login("admin", "123456", 10);
         let resolve, reject;
         request.post("/api/messages")
             .set("Authorization", `Bearer ${token}`)
@@ -556,7 +556,7 @@ describe("test get user all message id api", () => {
     let token, id;
     beforeEach(async () => {
         await register("admin");
-        token = await user.login("admin", "123456");
+        token = await user.login("admin", "123456", 10);
         let resolve, reject;
         request.post("/api/messages")
             .set("Authorization", `Bearer ${token}`)
