@@ -39,7 +39,7 @@ function checkUsername(username) {
     const validity = checkLength(username, 3, 32);
     if (!validity.valid) {
         return validity;
-    } else if (/^[~!@#$%^&*()-+=]/.test(username)) {
+    } else if (/^[~!@#$%^&*()-+=]/.test(username) || /\s/.test(username)) {
         return {
             valid: false,
             patternMismatch: true,
