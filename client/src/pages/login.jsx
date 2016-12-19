@@ -22,12 +22,12 @@ const LoginForm = ({ errorMessage, processing, onSubmit }) => {
     return (
         <form onSubmit={onSubmit} name="login-form">
             <div className="form-ctl">
-                <label className="for-text">用户名</label>
-                <input type="text" name="username" required />
+                <label for="login-username" className="for-text">用户名</label>
+                <input id="login-username" type="text" name="username" required />
             </div>
             <div className="form-ctl">
-                <label className="for-text">密码</label>
-                <input type="password" name="password" required />
+                <label for="login-password" className="for-text">密码</label>
+                <input id="login-password" type="password" name="password" required />
             </div>
             <div className="form-ctl">
                 <label className="for-checkbox">
