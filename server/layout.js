@@ -72,7 +72,7 @@ const middleware = function* messageMiddleware() {
         fragment = `\
             <div class="message-content">${outputToHTML(content)}</div>
             <div class="message-content-warning">
-                <p><i class="fa-warning">&#61553;</i>该消息内容由用户产生，如果内容涉及儿童色情、侵权、诈骗等，可以<a href="mailto:awhile.online@yandex.com?subject=举报&body="><b>发送邮件</b></a>举报！</p>
+                <p><i class="fa-warning">&#61553;</i>该消息内容由用户产生，如果内容涉及儿童色情、儿童暴力、侵权、诈骗等，可以<a href="mailto:awhile.online@yandex.com?subject=举报&body="><b>发送邮件</b></a>举报！</p>
             </div>
         `;
     } else {
