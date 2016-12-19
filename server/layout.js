@@ -37,12 +37,13 @@ layoutRouter.get([
         <meta charset="UTF-8">
         <title>Awhile.Online - Beta</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>@-webkit-keyframes page-loading{from{-webkit-transform:rotate(0deg);transform:rotate(0deg)}to{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}@keyframes page-loading{from{-webkit-transform:rotate(0deg);transform:rotate(0deg)}to{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}body.page-loading{position:relative;height:100vh;margin:0}body.page-loading:before{content:"";position:absolute;top:0;left:0;right:0;bottom:0;margin:auto;width:2em;height:2em;border-radius:50%;border:1px solid #263248;border-left-color:transparent;border-right-color:transparent;-webkit-animation:page-loading linear .618s infinite;animation:page-loading linear .618s infinite}</style>
         <link href="${hash`/stylesheets/normalize.css`}" rel="stylesheet">
         <link href="${hash`/stylesheets/layout.css`}" rel="stylesheet">
         <script src="${hash`/javascripts/vendor.bundle.js`}"></script>
         <script src="${hash`/javascripts/bundle.js`}"></script>
     </head>
-    <body>
+    <body class="page-loading">
         <div class="jumbotron">
             <div class="mid">
                 <div class="logo">
@@ -91,6 +92,7 @@ const middleware = function* messageMiddleware() {
         <title>Awhile.Online - Beta</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noindex">
+        <style>@-webkit-keyframes page-loading{from{-webkit-transform:rotate(0deg);transform:rotate(0deg)}to{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}@keyframes page-loading{from{-webkit-transform:rotate(0deg);transform:rotate(0deg)}to{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}body.page-loading{position:relative;height:100vh;margin:0}body.page-loading:before{content:"";position:absolute;top:0;left:0;right:0;bottom:0;margin:auto;width:2em;height:2em;border-radius:50%;border:1px solid #263248;border-left-color:transparent;border-right-color:transparent;-webkit-animation:page-loading linear .618s infinite;animation:page-loading linear .618s infinite}</style>
         <link href="${hash`/stylesheets/normalize.css`}" rel="stylesheet">
         <link href="${hash`/stylesheets/layout.css`}" rel="stylesheet">
         <script>
@@ -99,7 +101,7 @@ const middleware = function* messageMiddleware() {
         <script src="${hash`/javascripts/vendor.bundle.js`}"></script>
         <script src="${hash`/javascripts/bundle.js`}"></script>
     </head>
-    <body>
+    <body class="page-loading">
         <div class="jumbotron">
             <div class="mid">
                 <div class="logo">

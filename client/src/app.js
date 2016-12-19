@@ -54,6 +54,8 @@ class App extends Component {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-    document.body.innerHTML = "";
-    render(<App store={store} messageContent={window.messageContent} />, document.body);
+    const body = document.body;
+    body.classList.remove("page-loading");
+    body.innerHTML = "";
+    render(<App store={store} messageContent={window.messageContent} />, body);
 }, true);
