@@ -15,6 +15,7 @@ import {
     SESSION_KEY_USER_INFO,
     SESSION_KEY_MESSAGE_IDS,
     KEY_USER_TOKEN,
+    AUTH_ERROR,
 } from "../constants";
 import sharedSessionStorage from "shared-session-storage";
 
@@ -175,7 +176,7 @@ export async function getUserInfo(ignoreCache = false) {
     try {
         userInfo = await getUserInfoByToken(token);
     } catch (ex) {
-        if (ex instanceof AuthError) {
+        if (ex.errno === AUTH_ERROR) {
             clearToekn();
         }
         return null;
