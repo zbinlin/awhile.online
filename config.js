@@ -45,11 +45,6 @@ if (isProduction && !REDIS_URL) {
     throw new Error("environment variable `REDIS_URL` is not set");
 }
 
-const JWT_SECRET = env.JWT_SECRET;
-if (isProduction && !JWT_SECRET) {
-    throw new Error("environment variable `JWT_SECRET` is not set");
-}
-
 const PORT = env.PORT || 8000;
 
 const HOST = env.HOST || "localhost";
@@ -74,7 +69,6 @@ const MEMBER_TTL_RANGE = {
 export {
     PG_CONFIG,
     REDIS_URL,
-    JWT_SECRET,
     PG_TN_USERS,
     PORT,
     HOST,
