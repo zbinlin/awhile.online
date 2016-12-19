@@ -10,7 +10,7 @@ const Content = ({ value }) => (
         <div className="message-content-warning">
             <p>
                 <i className="fa-warning">&#61553;</i>
-                该消息内容由用户产生，如果内容涉及儿童色情、侵权、诈骗等，可以<a href={`mailto:awhile.online@yandex.com?subject=举报&body=${location.href}`}><b>发送邮件</b></a>举报！
+                该消息内容由用户产生，如果内容涉及儿童色情、儿童暴力、侵权、诈骗等，可以<a href={`mailto:awhile.online@yandex.com?subject=举报&body=${location.href}`}><b>发送邮件</b></a>举报！
             </p>
         </div>
     </div>
