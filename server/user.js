@@ -11,8 +11,11 @@ import {
 } from "./db";
 import {
     PG_TN_USERS,
+    PASSWORD_MAX_RETRY_TIMES,
+    PASSWORD_LIMIT_RETRY_DURATION,
 } from "../config";
 
+const REDIS_PASSWORD_RETRY = "password:retry";
 const REDIS_JWT_SECRET_KEY = "jwt:secret";
 const REDIS_JWT_PREFIX_KEY = "jwt:revocationlist";
 
@@ -259,6 +262,51 @@ export async function changeNickname(userId, nickname) {
     }
 }
 
+function getRedisPRKey(username) {
+    return [REDIS_PASSWORD_RETRY, username].join(":");
+}
+
+/**
+ * @private
+ * @param {string} username
+ * @return {number}
+ */
+async function getPasswordRetryByUsername(username) {
+    const key = getRedisPRKey(username);
+    const result = Number(await redisClient.getAsync(key));
+    if (Number.isNaN(result)) {
+        return 0;
+    } else {
+        return result;
+    }
+}
+
+/**
+ * @private
+ * @param {string} username
+ */
+async function countPasswordRetryByUsername(username) {
+    const key = getRedisPRKey(username);
+    try {
+        return await redisClient.multi()
+            .incr(key)
+            .expire(key, PASSWORD_LIMIT_RETRY_DURATION)
+            .execAsync();
+    } catch (ex) {
+        console.error(ex);
+        return await redisClient.setAsync(key, 0, PASSWORD_LIMIT_RETRY_DURATION);
+    }
+}
+
+/**
+ * @private
+ * @param {string} username
+ */
+async function clearPasswordRetryByUsername(username) {
+    const key = getRedisPRKey(username);
+    return await redisClient.delAsync(key);
+}
+
 /**
  * @param {string} username
  * @param {string} password
@@ -267,6 +315,10 @@ export async function changeNickname(userId, nickname) {
  */
 export async function login(username, password, expiresIn) {
     username = username.toLowerCase();
+    const retry =  await getPasswordRetryByUsername(username);
+    if (retry >= PASSWORD_MAX_RETRY_TIMES) {
+        throw new Error("You enter the wrong password too many times");
+    }
     const conn = await pgClient.connect();
     let originPw, salt;
     try {
@@ -285,7 +337,10 @@ export async function login(username, password, expiresIn) {
     }
     const pw = toStr(await encryptPassword(password, salt));
     if (pw !== originPw) {
+        await countPasswordRetryByUsername(username);
         throw new Error("password incorrect!");
+    } else {
+        await clearPasswordRetryByUsername(username);
     }
     try {
         const jti = await generateJTIKey();

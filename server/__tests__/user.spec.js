@@ -125,3 +125,57 @@ describe("test removeSecretByToken function", () => {
         expect(await removeSecretByToken(token)).toBe(1);
     });
 });
+
+
+describe("test private function about limit enter wrong password too many times", () => {
+    const PREFIX_KEY = $privates.__GetDependency__("REDIS_PASSWORD_RETRY");
+    const getRedisPRKey = $privates.__GetDependency__("getRedisPRKey");
+    const getPasswordRetryByUsername = $privates.__GetDependency__("getPasswordRetryByUsername");
+    const countPasswordRetryByUsername = $privates.__GetDependency__("countPasswordRetryByUsername");
+    const clearPasswordRetryByUsername = $privates.__GetDependency__("clearPasswordRetryByUsername");
+
+    describe("test getRedisPRKey function", () => {
+        it("ok", () => {
+            expect(getRedisPRKey("admin")).toBe([
+                PREFIX_KEY, "admin",
+            ].join(":"));
+        });
+    });
+
+    describe("test getPasswordRetryByUsername function", () => {
+        afterAll(async () => {
+            redisClient.delAsync(`${PREFIX_KEY}:admin`);
+        });
+        it("should returns zero", async () => {
+            expect(await getPasswordRetryByUsername("admin")).toBe(0);
+        });
+        it("should returns 1", async () => {
+            await redisClient.incrAsync(`${PREFIX_KEY}:admin`);
+            expect(await getPasswordRetryByUsername("admin")).toBe(1);
+        });
+    });
+
+    describe("test countPasswordRetryByUsername function", () => {
+        afterAll(async () => {
+            redisClient.delAsync(`${PREFIX_KEY}:admin`);
+        });
+        it("should returns count", async () => {
+            await countPasswordRetryByUsername("admin");
+            expect(await getPasswordRetryByUsername("admin")).toBe(1);
+            await countPasswordRetryByUsername("admin");
+            expect(await getPasswordRetryByUsername("admin")).toBe(2);
+        });
+    });
+
+    describe("test clearPasswordRetryByUsername function", () => {
+        afterAll(async () => {
+            redisClient.delAsync(`${PREFIX_KEY}:admin`);
+        });
+        it("should clear count", async () => {
+            await countPasswordRetryByUsername("admin");
+            await countPasswordRetryByUsername("admin");
+            clearPasswordRetryByUsername("admin");
+            expect(await getPasswordRetryByUsername("admin")).toBe(0);
+        });
+    });
+});

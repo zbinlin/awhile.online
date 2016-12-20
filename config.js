@@ -66,6 +66,9 @@ const MEMBER_TTL_RANGE = {
     max: moment.duration(1, "months").asSeconds(),
 };
 
+const PASSWORD_MAX_RETRY_TIMES = 9;
+const PASSWORD_LIMIT_RETRY_DURATION = 15 * 60; // 15 mins
+
 export {
     PG_CONFIG,
     REDIS_URL,
@@ -77,4 +80,6 @@ export {
     GUEST_TTL_RANGE,
     MEMBER_TTL_RANGE,
     MANIFEST_PATH,
+    PASSWORD_MAX_RETRY_TIMES,
+    PASSWORD_LIMIT_RETRY_DURATION,
 };

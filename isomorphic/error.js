@@ -24,6 +24,11 @@ export const USERNAME_OR_PASSWORD_INCORRECT = wrap({
     message: "用户名或密码错误",
 });
 
+export const RETRY_WROING_PASSWORD_TOO_MANY_TIMES = wrap({
+    code: "RETRY_WROING_PASSWORD_TOO_MANY_TIMES",
+    message: "尝试密码错误的次数超过限制，请稍后再试",
+});
+
 export const USERNAME_AND_TOKEN_NOT_MATCH = wrap({
     code: "USERNAME_AND_TOKEN_NOT_MATCH",
     message: "用户名和 Token 不一致",

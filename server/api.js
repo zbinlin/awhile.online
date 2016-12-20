@@ -125,6 +125,12 @@ apiRouter.post("/authentication", function* () {
             token,
         };
     } catch (ex) {
+        if (ex.message.includes("too many times")) {
+            ex.statusCode = 403;
+            ex.message = ERROR.RETRY_WROING_PASSWORD_TOO_MANY_TIMES.message;
+            doThrow(this, ex);
+            return;
+        }
         // TODO
         // logger ex
         ex.statusCode = 400;
