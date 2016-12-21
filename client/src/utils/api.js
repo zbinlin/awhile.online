@@ -242,7 +242,7 @@ export async function postMessage(content, startTime, ttl) {
             if (token) {
                 clearMessageIds();
             }
-            return `https://awhile.online/${token ? "m" : "anonymous"}/${id}`;
+            return `${location.protocol}//${location.host}/${token ? "m" : "anonymous"}/${id}`;
         } catch (ex) {
             throw new FetchParseBodyError(ex.message);
         }
