@@ -78,7 +78,7 @@ PORT=8001 npm run serve
 
 ## 部署到服务器上
 
-详情见 []()
+详情见 [Summary#部署](./summary.md)
 
 
 >Copyright 2016 Colin Zheng
