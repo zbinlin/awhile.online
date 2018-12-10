@@ -11,7 +11,6 @@
     "rollup": "BABEL_ENV=rollup rollup -c rollup.config.js",
     "prebuild-client": "npm run test-client",
     "build-client": "npm run webpack",
-    "prebuild-server": "npm run test-server",
     "build-server": "npm run rollup",
     "serve": "babel-node server/index.js",
     "prebuild": "npm run lint && NODE_ENV=production npm run build-server && NODE_ENV=production npm run build-client",
