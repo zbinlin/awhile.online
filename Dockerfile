@@ -20,7 +20,7 @@ WORKDIR /srv
 
 COPY --from=build /srv/dist/ /srv/
 
-RUN npm install
+RUN npm install --production
 
 EXPOSE 8080
 
